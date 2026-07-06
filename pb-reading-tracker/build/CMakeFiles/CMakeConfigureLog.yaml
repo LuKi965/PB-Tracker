@@ -1,0 +1,310 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:200 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The target system is: Linux -  - arm
+      The host system is: Darwin - 25.5.0 - arm64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+      Compiler: /opt/homebrew/bin/arm-linux-gnueabi-g++ 
+      Build flags: --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot;-include;/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h
+      Id flags:  
+      
+      The output was:
+      1
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: warning: /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o: missing .note.GNU-stack section implies executable stack
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/libstdc++.so: undefined reference to `utimensat@GLIBC_2.6'
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/libstdc++.so: undefined reference to `getentropy@GLIBC_2.25'
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/libstdc++.so: undefined reference to `secure_getenv@GLIBC_2.17'
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/libstdc++.so: undefined reference to `clock_gettime@GLIBC_2.17'
+      /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/libstdc++.so: undefined reference to `__cxa_thread_atexit_impl@GLIBC_2.18'
+      collect2: error: ld returned 1 exit status
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /opt/homebrew/bin/arm-linux-gnueabi-g++ 
+      Build flags: --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot;-include;/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h
+      Id flags: -c 
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.o"
+      
+      The CXX compiler identification is GNU, found in:
+        /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/4.0.1/CompilerIdCXX/CMakeCXXCompilerId.o
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/CMakeScratch/TryCompile-YdoJTD"
+      binary: "/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/CMakeScratch/TryCompile-YdoJTD"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h"
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: "--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -static-libstdc++ -static-libgcc"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/CMakeScratch/TryCompile-YdoJTD'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2711d/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_2711d.dir/build.make CMakeFiles/cmTC_2711d.dir/build
+        Building CXX object CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o
+        /opt/homebrew/bin/arm-linux-gnueabi-g++   --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h    -v -o CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Using built-in specs.
+        COLLECT_GCC=/opt/homebrew/bin/arm-linux-gnueabi-g++
+        Target: arm-unknown-linux-gnueabi
+        Configured with: /Volumes/build/.build/arm-unknown-linux-gnueabi/src/gcc/configure --build=aarch64-build_apple-darwin23.6.0 --host=aarch64-build_apple-darwin23.6.0 --target=arm-unknown-linux-gnueabi --prefix=/Volumes/tools/arm-unknown-linux-gnueabi --exec_prefix=/Volumes/tools/arm-unknown-linux-gnueabi --with-sysroot=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-languages=c,c++,fortran --with-float=soft --with-pkgversion='crosstool-NG 1.28.0' --disable-sjlj-exceptions --enable-__cxa_atexit --disable-libmudflap --enable-libgomp --enable-libquadmath --enable-libquadmath-support --enable-libsanitizer --disable-libmpx --with-gmp=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpfr=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpc=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-isl=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --enable-lto --enable-threads=posix --enable-target-optspace --enable-linker-build-id --enable-plugin --disable-nls --with-system-zlib --disable-multilib --with-local-prefix=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-long-long
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 15.2.0 (crosstool-NG 1.28.0) 
+        COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/'
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/cc1plus -quiet -v -iprefix /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/ -isysroot /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -D_GNU_SOURCE -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_2711d.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mcpu=arm10tdmi -mfloat-abi=soft -mtls-dialect=gnu -marm -mlibarch=armv5t -march=armv5t -version -o /var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccBEWGJ5.s
+        GNU C++17 (crosstool-NG 1.28.0) version 15.2.0 (arm-unknown-linux-gnueabi)
+        	compiled by GNU C version Apple LLVM 15.0.0 (clang-1500.3.9.4), GMP version 6.2.1, MPFR version 4.2.2, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0"
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi"
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward"
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include"
+        ignoring nonexistent directory "/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot/include"
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed"
+        ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include
+         /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include
+        End of search list.
+        Compiler executable checksum: bd5bd2b651359af1b0aea0b4d314fc12
+        COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/'
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/as -v -march=armv5t -mfloat-abi=soft -meabi=5 -o CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o /var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccBEWGJ5.s
+        GNU assembler version 2.45 (arm-unknown-linux-gnueabi) using BFD version (crosstool-NG 1.28.0) 2.45
+        COMPILER_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/
+        LIBRARY_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/
+        COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.'
+        Linking CXX executable cmTC_2711d
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2711d.dir/link.txt --verbose=1
+        Using built-in specs.
+        COLLECT_GCC=/opt/homebrew/bin/arm-linux-gnueabi-g++
+        COLLECT_LTO_WRAPPER=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper
+        Target: arm-unknown-linux-gnueabi
+        Configured with: /Volumes/build/.build/arm-unknown-linux-gnueabi/src/gcc/configure --build=aarch64-build_apple-darwin23.6.0 --host=aarch64-build_apple-darwin23.6.0 --target=arm-unknown-linux-gnueabi --prefix=/Volumes/tools/arm-unknown-linux-gnueabi --exec_prefix=/Volumes/tools/arm-unknown-linux-gnueabi --with-sysroot=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-languages=c,c++,fortran --with-float=soft --with-pkgversion='crosstool-NG 1.28.0' --disable-sjlj-exceptions --enable-__cxa_atexit --disable-libmudflap --enable-libgomp --enable-libquadmath --enable-libquadmath-support --enable-libsanitizer --disable-libmpx --with-gmp=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpfr=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpc=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-isl=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --enable-lto --enable-threads=posix --enable-target-optspace --enable-linker-build-id --enable-plugin --disable-nls --with-system-zlib --disable-multilib --with-local-prefix=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-long-long
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 15.2.0 (crosstool-NG 1.28.0) 
+        COMPILER_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/
+        LIBRARY_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/
+        COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-static-libgcc' '-v' '-o' 'cmTC_2711d' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'cmTC_2711d.'
+         /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/collect2 -plugin /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/liblto_plugin.so -plugin-opt=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper -plugin-opt=-fresolution=/var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccTi5Wz1.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot --build-id --eh-frame-hdr -dynamic-linker /lib/ld-linux.so.3 -X -m armelf_linux_eabi -o cmTC_2711d /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0 -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib -v CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -Bstatic -lstdc++ -Bdynamic -lm -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o
+        collect2 version 15.2.0
+        /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld -plugin /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/liblto_plugin.so -plugin-opt=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper -plugin-opt=-fresolution=/var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccTi5Wz1.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot --build-id --eh-frame-hdr -dynamic-linker /lib/ld-linux.so.3 -X -m armelf_linux_eabi -o cmTC_2711d /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0 -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib -v CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -Bstatic -lstdc++ -Bdynamic -lm -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o
+        GNU ld (crosstool-NG 1.28.0) 2.45
+        /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: warning: /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o: missing .note.GNU-stack section implies executable stack
+        /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+        COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-static-libgcc' '-v' '-o' 'cmTC_2711d' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'cmTC_2711d.'
+        /opt/homebrew/bin/arm-linux-gnueabi-g++ --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h  --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -static-libstdc++ -static-libgcc -v -Wl,-v CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_2711d
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:191 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0]
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi]
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward]
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include]
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed]
+          add: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include]
+          add: [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include]
+        end of search list found
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0]
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi]
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0/backward]
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include]
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed]
+        collapse include dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include]
+        collapse include dir [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include] ==> [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include]
+        implicit include dirs: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include/c++/15.2.0/backward;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/include;/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:227 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
+        ignore line: [Change Dir: '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/CMakeScratch/TryCompile-YdoJTD']
+        ignore line: []
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2711d/fast]
+        ignore line: [/Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_2711d.dir/build.make CMakeFiles/cmTC_2711d.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/opt/homebrew/bin/arm-linux-gnueabi-g++   --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h    -v -o CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/opt/homebrew/bin/arm-linux-gnueabi-g++]
+        ignore line: [Target: arm-unknown-linux-gnueabi]
+        ignore line: [Configured with: /Volumes/build/.build/arm-unknown-linux-gnueabi/src/gcc/configure --build=aarch64-build_apple-darwin23.6.0 --host=aarch64-build_apple-darwin23.6.0 --target=arm-unknown-linux-gnueabi --prefix=/Volumes/tools/arm-unknown-linux-gnueabi --exec_prefix=/Volumes/tools/arm-unknown-linux-gnueabi --with-sysroot=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-languages=c c++ fortran --with-float=soft --with-pkgversion='crosstool-NG 1.28.0' --disable-sjlj-exceptions --enable-__cxa_atexit --disable-libmudflap --enable-libgomp --enable-libquadmath --enable-libquadmath-support --enable-libsanitizer --disable-libmpx --with-gmp=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpfr=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpc=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-isl=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --enable-lto --enable-threads=posix --enable-target-optspace --enable-linker-build-id --enable-plugin --disable-nls --with-system-zlib --disable-multilib --with-local-prefix=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-long-long]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 15.2.0 (crosstool-NG 1.28.0) ]
+        ignore line: [COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/']
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/cc1plus -quiet -v -iprefix /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/ -isysroot /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot -D_GNU_SOURCE -include /Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_2711d.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mcpu=arm10tdmi -mfloat-abi=soft -mtls-dialect=gnu -marm -mlibarch=armv5t -march=armv5t -version -o /var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccBEWGJ5.s]
+        ignore line: [GNU C++17 (crosstool-NG 1.28.0) version 15.2.0 (arm-unknown-linux-gnueabi)]
+        ignore line: [	compiled by GNU C version Apple LLVM 15.0.0 (clang-1500.3.9.4)  GMP version 6.2.1  MPFR version 4.2.2  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0"]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi"]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward"]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include"]
+        ignore line: [ignoring nonexistent directory "/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot/include"]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed"]
+        ignore line: [ignoring duplicate directory "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/../../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/arm-unknown-linux-gnueabi]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include/c++/15.2.0/backward]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/include-fixed]
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/include]
+        ignore line: [ /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/include]
+        ignore line: [End of search list.]
+        ignore line: [Compiler executable checksum: bd5bd2b651359af1b0aea0b4d314fc12]
+        ignore line: [COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/']
+        ignore line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/as -v -march=armv5t -mfloat-abi=soft -meabi=5 -o CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o /var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccBEWGJ5.s]
+        ignore line: [GNU assembler version 2.45 (arm-unknown-linux-gnueabi) using BFD version (crosstool-NG 1.28.0) 2.45]
+        ignore line: [COMPILER_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/]
+        ignore line: [LIBRARY_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '-v' '-o' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.']
+        ignore line: [Linking CXX executable cmTC_2711d]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2711d.dir/link.txt --verbose=1]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/opt/homebrew/bin/arm-linux-gnueabi-g++]
+        ignore line: [COLLECT_LTO_WRAPPER=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper]
+        ignore line: [Target: arm-unknown-linux-gnueabi]
+        ignore line: [Configured with: /Volumes/build/.build/arm-unknown-linux-gnueabi/src/gcc/configure --build=aarch64-build_apple-darwin23.6.0 --host=aarch64-build_apple-darwin23.6.0 --target=arm-unknown-linux-gnueabi --prefix=/Volumes/tools/arm-unknown-linux-gnueabi --exec_prefix=/Volumes/tools/arm-unknown-linux-gnueabi --with-sysroot=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-languages=c c++ fortran --with-float=soft --with-pkgversion='crosstool-NG 1.28.0' --disable-sjlj-exceptions --enable-__cxa_atexit --disable-libmudflap --enable-libgomp --enable-libquadmath --enable-libquadmath-support --enable-libsanitizer --disable-libmpx --with-gmp=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpfr=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-mpc=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --with-isl=/Volumes/build/.build/arm-unknown-linux-gnueabi/buildtools --enable-lto --enable-threads=posix --enable-target-optspace --enable-linker-build-id --enable-plugin --disable-nls --with-system-zlib --disable-multilib --with-local-prefix=/Volumes/tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/sysroot --enable-long-long]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 15.2.0 (crosstool-NG 1.28.0) ]
+        ignore line: [COMPILER_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/]
+        ignore line: [LIBRARY_PATH=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/:/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/:/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-include' '/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/stdlib_fix.h' '--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot' '-static-libgcc' '-v' '-o' 'cmTC_2711d' '-mcpu=arm10tdmi' '-mfloat-abi=soft' '-mtls-dialect=gnu' '-marm' '-mlibarch=armv5t' '-march=armv5t' '-dumpdir' 'cmTC_2711d.']
+        link line: [ /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/collect2 -plugin /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/liblto_plugin.so -plugin-opt=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper -plugin-opt=-fresolution=/var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccTi5Wz1.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot --build-id --eh-frame-hdr -dynamic-linker /lib/ld-linux.so.3 -X -m armelf_linux_eabi -o cmTC_2711d /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0 -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib -v CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -Bstatic -lstdc++ -Bdynamic -lm -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o]
+          arg [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccTi5Wz1.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [--sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot] ==> ignore
+          arg [--build-id] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib/ld-linux.so.3] ==> ignore
+          arg [-X] ==> ignore
+          arg [-m] ==> ignore
+          arg [armelf_linux_eabi] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_2711d] ==> ignore
+          arg [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o] ==> obj [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o]
+          arg [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o] ==> obj [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o]
+          arg [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o] ==> obj [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o]
+          arg [-L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0] ==> dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0]
+          arg [-L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc] ==> dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc]
+          arg [-L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib] ==> dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib]
+          arg [-L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib] ==> dir [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib]
+          arg [-L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib] ==> dir [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib]
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-Bstatic] ==> search static
+          arg [-lstdc++] ==> lib [SEARCH_STATIC:stdc++]
+          arg [-Bdynamic] ==> search dynamic
+          arg [-lm] ==> lib [m]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o] ==> obj [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o]
+          arg [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o] ==> obj [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o]
+        ignore line: [collect2 version 15.2.0]
+        ignore line: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld -plugin /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/liblto_plugin.so -plugin-opt=/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../libexec/gcc/arm-unknown-linux-gnueabi/15.2.0/lto-wrapper -plugin-opt=-fresolution=/var/folders/s5/hxpnqggj3r15r67cq_d__6nm0000gn/T//ccTi5Wz1.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh --sysroot=/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot --build-id --eh-frame-hdr -dynamic-linker /lib/ld-linux.so.3 -X -m armelf_linux_eabi -o cmTC_2711d /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0 -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc -L/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib -L/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib -v CMakeFiles/cmTC_2711d.dir/CMakeCXXCompilerABI.cpp.o -Bstatic -lstdc++ -Bdynamic -lm -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o /Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o]
+        linker tool for 'CXX': /opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld
+        search lib [SEARCH_STATIC:stdc++] ==> [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/libstdc++.a]
+        remove lib [gcc_eh]
+        remove lib [gcc_eh]
+        collapse obj [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o]
+        collapse obj [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o]
+        collapse library dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0]
+        collapse library dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc]
+        collapse library dir [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/lib] ==> [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/lib]
+        collapse library dir [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib] ==> [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib]
+        collapse library dir [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib] ==> [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib]
+        implicit libs: [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib/libstdc++.a;m;gcc;c;gcc]
+        implicit objs: [/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crt1.o;/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crti.o;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtbegin.o;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0/crtend.o;/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib/crtn.o]
+        implicit dirs: [/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc/arm-unknown-linux-gnueabi/15.2.0;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/lib/gcc;/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/arm-unknown-linux-gnueabi/lib;/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/lib;/Users/mirandadiazhernandez/pocketbook-sdk/FRSCSDK/arm-none-linux-gnueabi/sysroot/usr/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:264 (cmake_determine_linker_id)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Running the CXX compiler's linker: "/opt/homebrew/Cellar/arm-unknown-linux-gnueabi/15.2.0/toolchain/bin/../lib/gcc/arm-unknown-linux-gnueabi/15.2.0/../../../../arm-unknown-linux-gnueabi/bin/ld" "-v"
+      GNU ld (crosstool-NG 1.28.0) 2.45
+...

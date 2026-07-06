@@ -1,0 +1,3 @@
+/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/pbreadstats.dir
+/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/edit_cache.dir
+/Users/mirandadiazhernandez/Downloads/pb-reading-tracker/build/CMakeFiles/rebuild_cache.dir
