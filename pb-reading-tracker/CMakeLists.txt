@@ -8,12 +8,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #   cmake -B build -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-obreey-linux-gnueabi.cmake
 # (Same toolchain you're already using for pb-stats-tracker.)
 
+include_directories(src)
+
 add_executable(pbreadstats
     src/main.cpp
     src/tracker.cpp
     src/db.cpp
     src/metadata.cpp
     src/i18n.cpp
+)
+
+set_source_files_properties(src/main.cpp PROPERTIES
+    COMPILE_FLAGS "-include i18n_wrap.h"
 )
 
 target_link_libraries(pbreadstats inkview sqlite3 z)
