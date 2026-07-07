@@ -1,0 +1,92 @@
+name: Build PocketBook App
+
+on:
+  workflow_dispatch:
+    inputs:
+      toolchain_relative:
+        description: Optional path inside the SDK archive to the PocketBook CMake toolchain file
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Reading Stats.app
+    runs-on: ubuntu-latest
+    env:
+      POCKETBOOK_SDK_URL: ${{ secrets.POCKETBOOK_SDK_URL }}
+      TOOLCHAIN_RELATIVE: ${{ inputs.toolchain_relative }}
+
+    steps:
+      - name: Checkout product-v2
+        uses: actions/checkout@v4
+        with:
+          ref: product-v2
+
+      - name: Prepare paths
+        run: |
+          echo "SDK_DIR=$RUNNER_TEMP/pocketbook-sdk" >> "$GITHUB_ENV"
+          echo "SDK_ARCHIVE=$RUNNER_TEMP/pocketbook-sdk.archive" >> "$GITHUB_ENV"
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential unzip file
+
+      - name: Check SDK URL secret
+        run: |
+          if [ -z "$POCKETBOOK_SDK_URL" ]; then
+            echo "::error::Missing repository secret POCKETBOOK_SDK_URL. Add it in Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Download PocketBook SDK
+        run: |
+          curl -L --fail --retry 3 "$POCKETBOOK_SDK_URL" -o "$SDK_ARCHIVE"
+          file "$SDK_ARCHIVE"
+
+      - name: Unpack PocketBook SDK
+        run: |
+          mkdir -p "$SDK_DIR"
+          if unzip -tq "$SDK_ARCHIVE" >/dev/null 2>&1; then
+            unzip -q "$SDK_ARCHIVE" -d "$SDK_DIR"
+          else
+            tar -xf "$SDK_ARCHIVE" -C "$SDK_DIR"
+          fi
+          echo "SDK unpacked to: $SDK_DIR"
+          find "$SDK_DIR" -maxdepth 4 -type f -iname "*.cmake" | head -50
+
+      - name: Locate PocketBook toolchain
+        run: |
+          if [ -n "$TOOLCHAIN_RELATIVE" ]; then
+            TOOLCHAIN="$SDK_DIR/$TOOLCHAIN_RELATIVE"
+          else
+            TOOLCHAIN="$(find "$SDK_DIR" -type f \( -iname "*toolchain*.cmake" -o -iname "*obreey*.cmake" -o -iname "*gnueabi*.cmake" \) | head -n 1)"
+            if [ -z "$TOOLCHAIN" ]; then
+              TOOLCHAIN="$(find "$SDK_DIR" -type f -iname "*.cmake" | head -n 1)"
+            fi
+          fi
+
+          if [ -z "$TOOLCHAIN" ] || [ ! -f "$TOOLCHAIN" ]; then
+            echo "::error::Could not locate a PocketBook CMake toolchain file. Re-run workflow with the toolchain_relative input."
+            echo "Known .cmake files:"
+            find "$SDK_DIR" -type f -iname "*.cmake" | sort | head -200
+            exit 1
+          fi
+
+          echo "Using toolchain: $TOOLCHAIN"
+          echo "POCKETBOOK_TOOLCHAIN=$TOOLCHAIN" >> "$GITHUB_ENV"
+
+      - name: Build package
+        run: bash scripts/build.sh
+
+      - name: Upload Reading Stats package
+        uses: actions/upload-artifact@v4
+        with:
+          name: reading-stats-pocketbook
+          path: |
+            dist/Reading Stats.app
+            dist/Reading Stats.app.bmp
+          if-no-files-found: error
