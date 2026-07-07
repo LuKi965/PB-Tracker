@@ -14,6 +14,7 @@ enum Lang {
 };
 
 Lang g_lang = LANG_EN;
+char g_dynamic_text[160];
 
 struct Translation {
     const char *key;
@@ -42,6 +43,17 @@ const Translation TRANSLATIONS[] = {
     {"Database Error", "Błąd bazy danych"},
     {"Failed to open or initialize the database reading_stats.db.", "Nie udało się otworzyć lub zainicjalizować bazy reading_stats.db."},
     {NULL, NULL}
+};
+
+struct MonthName {
+    const char *en;
+    const char *pl;
+};
+
+const MonthName MONTHS[] = {
+    {"Jan", "sty"}, {"Feb", "lut"}, {"Mar", "mar"}, {"Apr", "kwi"},
+    {"May", "maj"}, {"Jun", "cze"}, {"Jul", "lip"}, {"Aug", "sie"},
+    {"Sep", "wrz"}, {"Oct", "paź"}, {"Nov", "lis"}, {"Dec", "gru"}
 };
 
 void set_language_from_code(const char *code) {
@@ -113,6 +125,65 @@ const char *book_form_pl(int count) {
     return "książek";
 }
 
+const char *month_pl_from_en(const char *en) {
+    for (int i = 0; i < 12; i++) {
+        if (strcmp(en, MONTHS[i].en) == 0) return MONTHS[i].pl;
+    }
+    return NULL;
+}
+
+const char *translate_dynamic_pl(const char *key) {
+    int a = 0;
+    int b = 0;
+    char month[8];
+    int year = 0;
+
+    if (sscanf(key, "%d%% read  ·  %d sess", &a, &b) == 2) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "%d%% przeczytano  ·  %d ses.", a, b);
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "Finished  ·  %d sess", &a) == 1) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "Ukończono  ·  %d ses.", a);
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "%d%% read", &a) == 1) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "%d%% przeczytano", a);
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "%dh %dm", &a, &b) == 2) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "%d godz. %02d min", a, b);
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "%d books read", &a) == 1 || sscanf(key, "%d book read", &a) == 1) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "Przeczytano %d %s", a, book_form_pl(a));
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "%d books", &a) == 1 || sscanf(key, "%d book", &a) == 1) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "%d %s", a, book_form_pl(a));
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "+ %d more", &a) == 1) {
+        snprintf(g_dynamic_text, sizeof(g_dynamic_text), "+ %d więcej", a);
+        return g_dynamic_text;
+    }
+
+    if (sscanf(key, "%7s %d", month, &year) == 2) {
+        const char *pl_month = month_pl_from_en(month);
+        if (pl_month && year >= 1900 && year <= 2200) {
+            snprintf(g_dynamic_text, sizeof(g_dynamic_text), "%s %d", pl_month, year);
+            return g_dynamic_text;
+        }
+    }
+
+    return key;
+}
+
 } // namespace
 
 void i18n_init() {
@@ -154,7 +225,7 @@ const char *tr(const char *key) {
         }
     }
 
-    return key;
+    return translate_dynamic_pl(key);
 }
 
 const char *month_name_i18n(int month) {
