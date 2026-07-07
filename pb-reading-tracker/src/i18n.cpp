@@ -263,3 +263,15 @@ std::string finished_with_sessions_i18n(int sessions) {
 std::string percent_read_with_sessions_i18n(int percent, int sessions) {
     return percent_read_i18n(percent) + "  ·  " + sessions_short_i18n(sessions);
 }
+
+namespace {
+
+struct I18nAutoInit {
+    I18nAutoInit() {
+        i18n_init();
+    }
+};
+
+I18nAutoInit g_i18n_auto_init;
+
+} // namespace
