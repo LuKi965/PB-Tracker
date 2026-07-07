@@ -128,7 +128,7 @@ jobs:
           set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
           set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
           set(CMAKE_C_FLAGS "--sysroot=$SYSROOT -I$SYSROOT/usr/include -I$SYSROOT/usr/local/include" CACHE STRING "" FORCE)
-          set(CMAKE_CXX_FLAGS "--sysroot=$SYSROOT -I$SYSROOT/usr/include -I$SYSROOT/usr/local/include -include ${GITHUB_WORKSPACE}/pb-reading-tracker/stdlib_fix.h" CACHE STRING "" FORCE)
+          set(CMAKE_CXX_FLAGS "--sysroot=$SYSROOT -I$SYSROOT/usr/include -I$SYSROOT/usr/local/include -DKEY_NEXT2=KEY_NEXT -DKEY_PREV=KEY_LEFT -DKEY_PREV2=KEY_LEFT" CACHE STRING "" FORCE)
           set(CMAKE_EXE_LINKER_FLAGS "--sysroot=$SYSROOT -static-libstdc++ -static-libgcc" CACHE STRING "" FORCE)
           EOF
           fi
