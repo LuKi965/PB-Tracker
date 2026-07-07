@@ -1,52 +1,83 @@
 # PB-Tracker
 
-A beautiful, native PocketBook application that gives you Kobo-style reading stats: total time read, per-book totals, session counts, and reading streaks.
+A native PocketBook application that gives you Kobo-style reading stats: total time read, per-book totals, session counts, reading streaks, progress, and calendar-style activity views.
 
-It combines intelligent background session tracking with native device databases to provide **100% accurate** reading statistics.
+It combines background session tracking with PocketBook device databases to provide reading statistics directly on the reader.
 
 ## Features
 
-- **Accurate "Books Finished" Counter**: Integrates directly with the PocketBook `explorer-3.db` to precisely track when you've reached the very last page of a book.
-- **Real Progress Bars**: The visual progress bars reflect your exact page progress in the book.
-- **Reading Streak Calendar**: A KOReader-style heatmap for the current month: one cell per day, shaded by how much you read that day.
-- **Smart Tracking**: Polls the device's native `lastopen.txt` (or `/tmp/.current`) to detect exactly when a book is opened and closed, accurately logging your reading sessions.
-- **Kobo "Reading Life" UI**: Features premium, large typography with crisp, readable stats and beautifully aligned book thumbnails.
+- **Books Finished Counter**: Integrates with the PocketBook `explorer-3.db` to track when you have reached the last page of a book.
+- **Real Progress Bars**: The visual progress bars reflect your page progress in the book.
+- **Reading Streak Calendar**: A KOReader/Kobo-style heatmap for the current month: one cell per day, shaded by how much you read that day.
+- **Smart Tracking**: Uses PocketBook state files to detect when a book is opened and closed, then logs reading sessions.
+- **Kobo "Reading Life" UI**: Large typography, readable stats, book thumbnails, period summaries and completion status.
+- **Localization groundwork**: English fallback with Polish UI support and manual language override.
 
 ## Dashboard Pages
 
-Tap the left/right edge of the screen (or use physical left/right keys) to move through the stats dashboard:
+Tap the left/right edge of the screen, or use physical left/right keys, to move through the stats dashboard:
 
-- **Overview** — All-time totals, current & best streaks, and a visual list of your most recently opened books with accurate reading percentages.
+- **Overview** — All-time totals, current streak, month/year summaries, and recently opened books with reading percentages.
 - **Calendar** — A heatmap of your daily reading habits for the current month.
-- **Monthly & Yearly Summaries** — Detailed lists of exactly which books you read in that period, complete with session counts, covers, and completion status.
+- **Monthly & Yearly Summaries** — Detailed lists of which books you read in that period, with session counts, covers, and completion status.
 
-## Installation (For Regular Users)
+## Installation
 
-The easiest way to use this app is to install the pre-compiled version:
-
-1. Download the `Reading Stats.app` file from the `release/` folder in this repository.
+1. Download or build `Reading Stats.app`.
 2. Connect your PocketBook to your computer via USB.
-3. Copy the `Reading Stats.app` file into your PocketBook's `applications/` folder.
-4. Eject the device, and the app will appear in your Applications menu!
+3. Copy `Reading Stats.app` into your PocketBook `applications/` folder.
+4. Eject the device. The app should appear in the Applications menu.
 
-*(Optional: If you want a custom icon, place a 114x114 BMP file named `Reading Stats.app.bmp` next to the app in the `applications/` folder).*
+Optional: If you want a custom icon, place a 114x114 BMP file named `Reading Stats.app.bmp` next to the app in the `applications/` folder.
 
-## Building from Source (For Developers)
+## Language
 
-This project is built in C++ using the official PocketBook SDK (inkview). If you want to edit the code and compile it yourself:
+The app tries to detect the PocketBook language automatically. You can force a language by creating this file on the device:
 
-```bash
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=/path/to/your/pocketbook_toolchain.cmake
-cmake --build build
+```text
+/system/pbreadstats/config.cfg
 ```
 
-This produces a single `pbreadstats` binary. You can rename it to `Reading Stats.app` and deploy it.
+For Polish:
+
+```ini
+language=pl
+```
+
+For English:
+
+```ini
+language=en
+```
+
+## Building from Source
+
+This project is built in C++ using the PocketBook SDK and InkView. The SDK is not committed to this repository.
+
+Recommended:
+
+```bash
+export POCKETBOOK_TOOLCHAIN=/path/to/arm-obreey-linux-gnueabi.cmake
+bash scripts/build.sh
+```
+
+Manual build:
+
+```bash
+cmake -S pb-reading-tracker -B build/pocketbook -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-obreey-linux-gnueabi.cmake -DCMAKE_BUILD_TYPE=Release
+cmake --build build/pocketbook
+```
+
+This produces a `pbreadstats` binary. Rename or copy it to `Reading Stats.app` and deploy it to the PocketBook `applications/` directory.
+
+See [`docs/build.md`](docs/build.md) for more details.
 
 ## How it works under the hood
 
-1. **Session Detection**: A background timer runs in the app and polls `/mnt/ext1/system/state/lastopen.txt`.
-2. **Metadata**: When a session closes, it is written to `/mnt/ext1/system/pbreadstats/reading_stats.db`, along with metadata pulled via `GetBookInfo()`.
-3. **Native Progress**: The UI cross-references your session data with the device's native `/mnt/ext1/system/explorer-3/explorer-3.db` database to retrieve exact `cpage` and `npage` values.
+1. **Session Detection**: A background timer runs in the app and polls PocketBook state files.
+2. **Metadata**: When a session closes, it is written to the app database with metadata pulled via `GetBookInfo()`.
+3. **Native Progress**: The UI cross-references session data with the device's native database to retrieve page progress and completion status.
 
 ## License
+
 MIT License
