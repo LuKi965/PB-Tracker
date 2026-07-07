@@ -13,6 +13,7 @@ add_executable(pbreadstats
     src/tracker.cpp
     src/db.cpp
     src/metadata.cpp
+    src/i18n.cpp
 )
 
 target_link_libraries(pbreadstats inkview sqlite3 z)
