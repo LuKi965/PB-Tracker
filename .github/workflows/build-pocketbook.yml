@@ -93,22 +93,60 @@ jobs:
         run: |
           if [ -n "$TOOLCHAIN_RELATIVE" ]; then
             TOOLCHAIN="$SDK_DIR/$TOOLCHAIN_RELATIVE"
-          else
-            TOOLCHAIN="$(find "$SDK_DIR" -type f \( -iname "*toolchain*.cmake" -o -iname "*obreey*.cmake" -o -iname "*gnueabi*.cmake" \) | head -n 1)"
-            if [ -z "$TOOLCHAIN" ]; then
-              TOOLCHAIN="$(find "$SDK_DIR" -type f -iname "*.cmake" | head -n 1)"
+            if [ ! -f "$TOOLCHAIN" ]; then
+              echo "::error::toolchain_relative was provided but does not point to a file: $TOOLCHAIN_RELATIVE"
+              exit 1
             fi
-          fi
+          else
+            SDK_ROOT="$(find "$SDK_DIR" -maxdepth 2 -type d -name 'SDK-B300-*' | head -n 1)"
+            if [ -z "$SDK_ROOT" ]; then
+              SDK_ROOT="$SDK_DIR"
+            fi
 
-          if [ -z "$TOOLCHAIN" ] || [ ! -f "$TOOLCHAIN" ]; then
-            echo "::error::Could not locate a PocketBook CMake toolchain file. Re-run workflow with the toolchain_relative input."
-            echo "Known .cmake files:"
-            find "$SDK_DIR" -type f -iname "*.cmake" | sort | head -200
-            exit 1
+            SYSROOT="$(find "$SDK_ROOT" -type d -path '*/arm-obreey-linux-gnueabi/sysroot' | head -n 1)"
+            if [ -z "$SYSROOT" ]; then
+              SYSROOT="$(find "$SDK_ROOT" -type d -name sysroot | head -n 1)"
+            fi
+
+            CXX="$(find "$SDK_ROOT" \( -type f -o -type l \) \( -name 'arm-obreey-linux-gnueabi-g++' -o -name 'arm-linux-gnueabi-g++' -o -name 'arm-linux-g++' \) | head -n 1)"
+            CC="$(find "$SDK_ROOT" \( -type f -o -type l \) \( -name 'arm-obreey-linux-gnueabi-gcc' -o -name 'arm-linux-gnueabi-gcc' -o -name 'arm-linux-gcc' \) | head -n 1)"
+            INKVIEW="$(find "$SDK_ROOT" -type f -name inkview.h | head -n 1)"
+
+            if [ -z "$SYSROOT" ] || [ -z "$CXX" ] || [ -z "$CC" ] || [ -z "$INKVIEW" ]; then
+              echo "::error::Could not locate SDK sysroot/compiler/inkview.h."
+              echo "SDK_ROOT=$SDK_ROOT"
+              echo "SYSROOT=$SYSROOT"
+              echo "CC=$CC"
+              echo "CXX=$CXX"
+              echo "INKVIEW=$INKVIEW"
+              echo "Compiler candidates:"
+              find "$SDK_ROOT" \( -type f -o -type l \) \( -name '*gcc' -o -name '*g++' \) | sort | head -200
+              exit 1
+            fi
+
+            chmod +x "$CC" "$CXX" || true
+            TOOLCHAIN="$RUNNER_TEMP/ci-pocketbook-toolchain.cmake"
+            cat > "$TOOLCHAIN" <<EOF
+          set(CMAKE_SYSTEM_NAME Linux)
+          set(CMAKE_SYSTEM_PROCESSOR arm)
+          set(CMAKE_SYSROOT "$SYSROOT")
+          set(CMAKE_C_COMPILER "$CC")
+          set(CMAKE_CXX_COMPILER "$CXX")
+          set(CMAKE_FIND_ROOT_PATH "$SYSROOT")
+          set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+          set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+          set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+          set(CMAKE_C_FLAGS "--sysroot=$SYSROOT -I$SYSROOT/usr/include -I$SYSROOT/usr/local/include" CACHE STRING "" FORCE)
+          set(CMAKE_CXX_FLAGS "--sysroot=$SYSROOT -I$SYSROOT/usr/include -I$SYSROOT/usr/local/include -include ${GITHUB_WORKSPACE}/pb-reading-tracker/stdlib_fix.h" CACHE STRING "" FORCE)
+          set(CMAKE_EXE_LINKER_FLAGS "--sysroot=$SYSROOT -static-libstdc++ -static-libgcc" CACHE STRING "" FORCE)
+          EOF
           fi
 
           echo "Using toolchain: $TOOLCHAIN"
           echo "POCKETBOOK_TOOLCHAIN=$TOOLCHAIN" >> "$GITHUB_ENV"
+          echo "Generated/selected toolchain contents:"
+          sed -n '1,160p' "$TOOLCHAIN"
 
       - name: Build package
         run: |
@@ -118,7 +156,7 @@ jobs:
           echo "Repository contents:"
           find . -maxdepth 3 -type f | sort | head -200
           echo "SDK executables and toolchain hints:"
-          find "$SDK_DIR" -maxdepth 8 -type f \( -name "*gcc" -o -name "*g++" -o -name "*.cmake" -o -name "inkview.h" \) | sort | head -300
+          find "$SDK_DIR" -maxdepth 8 \( -type f -o -type l \) \( -name "*gcc" -o -name "*g++" -o -name "*.cmake" -o -name "inkview.h" \) | sort | head -300
 
           bash -x scripts/build.sh || {
             STATUS="$?"
