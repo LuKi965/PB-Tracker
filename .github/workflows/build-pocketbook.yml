@@ -16,6 +16,7 @@ jobs:
     name: Build Reading Stats.app
     runs-on: ubuntu-latest
     env:
+      DEFAULT_POCKETBOOK_SDK_URL: https://github.com/pocketbook/SDK_6.3.0/releases/download/6.8/SDK-B300-6.8.7z
       POCKETBOOK_SDK_URL: ${{ secrets.POCKETBOOK_SDK_URL }}
       TOOLCHAIN_RELATIVE: ${{ inputs.toolchain_relative }}
 
@@ -25,27 +26,26 @@ jobs:
         with:
           ref: product-v2
 
-      - name: Prepare paths
+      - name: Prepare paths and SDK URL
         run: |
           echo "SDK_DIR=$RUNNER_TEMP/pocketbook-sdk" >> "$GITHUB_ENV"
-          echo "SDK_ARCHIVE=$RUNNER_TEMP/pocketbook-sdk.archive" >> "$GITHUB_ENV"
+          echo "SDK_ARCHIVE=$RUNNER_TEMP/pocketbook-sdk.7z" >> "$GITHUB_ENV"
+          if [ -n "$POCKETBOOK_SDK_URL" ]; then
+            echo "SDK_URL=$POCKETBOOK_SDK_URL" >> "$GITHUB_ENV"
+          else
+            echo "SDK_URL=$DEFAULT_POCKETBOOK_SDK_URL" >> "$GITHUB_ENV"
+          fi
 
       - name: Install build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake build-essential unzip file p7zip-full
 
-      - name: Check SDK URL secret
-        run: |
-          if [ -z "$POCKETBOOK_SDK_URL" ]; then
-            echo "::error::Missing repository secret POCKETBOOK_SDK_URL. Add it in Settings -> Secrets and variables -> Actions."
-            exit 1
-          fi
-
       - name: Download PocketBook SDK
         run: |
-          echo "Downloading PocketBook SDK from repository secret POCKETBOOK_SDK_URL..."
-          curl -L --fail-with-body --show-error --retry 3 "$POCKETBOOK_SDK_URL" -o "$SDK_ARCHIVE"
+          echo "Downloading PocketBook SDK..."
+          echo "SDK URL host: $(printf '%s' "$SDK_URL" | sed -E 's#^https?://([^/]+)/.*#\1#')"
+          curl -L --fail-with-body --show-error --retry 3 "$SDK_URL" -o "$SDK_ARCHIVE"
           echo "Downloaded SDK archive candidate:"
           file "$SDK_ARCHIVE"
           ls -lh "$SDK_ARCHIVE"
@@ -70,7 +70,8 @@ jobs:
           fi
 
           echo "SDK unpacked to: $SDK_DIR"
-          find "$SDK_DIR" -maxdepth 4 -type f -iname "*.cmake" | head -50
+          find "$SDK_DIR" -maxdepth 5 -type f -iname "*.cmake" | head -100
+          find "$SDK_DIR" -maxdepth 7 -type f -name "inkview.h" | head -20
 
       - name: Locate PocketBook toolchain
         run: |
