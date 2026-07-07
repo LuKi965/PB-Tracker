@@ -12,13 +12,9 @@
 
 extern bool g_daemon_mode;
 
-// This is only used when tracker_init() is run inside InkView UI mode.
-// The daemon loop in main.cpp polls at a lower frequency to reduce wakeups.
 static const int POLL_MS = 15000;
-
 static const int MIN_SESSION_SECONDS = 5;
-// Save at most once per minute while the same book remains open. The older
-// 15-second sync produced unnecessary SQLite writes and noisy logs.
+static const int FIRST_SYNC_SECONDS = 10;
 static const int SYNC_INTERVAL_SECONDS = 60;
 
 static std::string read_first_line(const char *path) {
@@ -125,8 +121,6 @@ static std::string current_book_path() {
         }
     }
 
-    // /proc scan is useful but relatively expensive. Do it only every few
-    // polls while we do not already have a last-opened candidate.
     if (g_lastopen_value.empty()) {
         if (g_proc_scan_backoff > 0) {
             g_proc_scan_backoff--;
@@ -152,11 +146,12 @@ static std::string current_book_path() {
 
 struct ActiveSession {
     bool active;
+    bool saved_once;
     std::string path;
     BookMeta meta;
     time_t start_time;
     time_t last_sync_time;
-    ActiveSession() : active(false), start_time(0), last_sync_time(0) {}
+    ActiveSession() : active(false), saved_once(false), start_time(0), last_sync_time(0) {}
 };
 
 static ActiveSession g_session;
@@ -177,6 +172,7 @@ static void close_session(time_t end_time) {
 
 static void open_session(const std::string &path, time_t start_time) {
     g_session.active = true;
+    g_session.saved_once = false;
     g_session.path = path;
     g_session.meta = g_daemon_mode ? metadata_read_basic(path) : metadata_read(path);
     g_session.start_time = start_time;
@@ -206,10 +202,15 @@ void tracker_poll() {
 
     long inc_duration = (long)(now - g_session.last_sync_time);
     long total_duration = (long)(now - g_session.start_time);
-    if (total_duration >= MIN_SESSION_SECONDS && inc_duration >= SYNC_INTERVAL_SECONDS) {
+    int threshold = g_session.saved_once ? SYNC_INTERVAL_SECONDS : FIRST_SYNC_SECONDS;
+    if (total_duration >= MIN_SESSION_SECONDS && inc_duration >= threshold) {
         bool ok = db_update_active_session(g_session.meta, g_session.start_time, now, inc_duration);
-        if (!ok) db_log("tracker_poll: periodic sync FAILED for '%s' inc=%ld", g_session.path.c_str(), inc_duration);
-        g_session.last_sync_time = now;
+        if (ok) {
+            g_session.saved_once = true;
+            g_session.last_sync_time = now;
+        } else {
+            db_log("tracker_poll: periodic sync FAILED for '%s' inc=%ld", g_session.path.c_str(), inc_duration);
+        }
     }
 }
 
