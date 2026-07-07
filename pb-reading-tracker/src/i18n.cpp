@@ -21,6 +21,7 @@ struct Translation {
 };
 
 const Translation TRANSLATIONS[] = {
+    {"Reading Stats", "Statystyki czytania"},
     {"Overview", "Podsumowanie"},
     {"Today", "Dzisiaj"},
     {"This Week", "Ten tydzień"},
@@ -37,6 +38,18 @@ const Translation TRANSLATIONS[] = {
     {"Recent Books", "Ostatnie książki"},
     {"Finished", "Ukończono"},
     {"Total Hours", "Łączny czas"},
+    {"Total read", "Łączny czas"},
+    {"Currently Reading", "AKTUALNIE CZYTASZ"},
+    {"Book progress", "Postęp książki"},
+    {"Entire Library", "CAŁA BIBLIOTEKA"},
+    {"Avg min/session", "Śr. min/sesja"},
+    {"of your library is complete", "biblioteki ukończone"},
+    {"Recent activity", "OSTATNIA AKTYWNOŚĆ"},
+    {"Activity", "Aktywność"},
+    {"History", "Historia"},
+    {"Safe USB mode: background tracking is off", "Tryb bezpieczny USB: śledzenie w tle wyłączone"},
+    {"No reading data yet.", "Brak danych czytania."},
+    {"Open a book and come back after a few minutes.", "Otwórz książkę i wróć po kilku minutach."},
     {"No books recorded yet. Start reading!", "Brak zapisanych książek. Zacznij czytać!"},
     {"No books logged in this period.", "Brak książek w tym okresie."},
     {"Darker = more time read", "Ciemniej = więcej czytania"},
@@ -45,6 +58,7 @@ const Translation TRANSLATIONS[] = {
     {"No books yet", "Brak książek"},
     {"App touch zones are left to PocketBook settings", "Strefy dotyku obsługuje konfiguracja PocketBooka"},
     {"Use page turn buttons or configured page zones", "Użyj przycisków zmiany stron albo własnych stref PocketBooka"},
+    {"(untitled)", "(bez tytułu)"},
     {NULL, NULL}
 };
 
@@ -141,20 +155,20 @@ const char *session_form_pl(int count) {
 void i18n_init() {
     g_lang = LANG_EN;
 
-    char code[32];
-
-#ifdef GLOBALCONFIGFILE
-    if (read_language_from_file(GLOBALCONFIGFILE, code, sizeof(code))) {
-        set_language_from_code(code);
-    }
-#endif
-
-    if (read_language_from_file(FLASHDIR "/system/config/global.cfg", code, sizeof(code))) {
-        set_language_from_code(code);
+    char lang[32] = {0};
+    if (read_language_from_file(FLASHDIR "/system/pbreadstats/config.cfg", lang, sizeof(lang))) {
+        set_language_from_code(lang);
+        return;
     }
 
-    if (read_language_from_file(FLASHDIR "/system/pbreadstats/config.cfg", code, sizeof(code))) {
-        set_language_from_code(code);
+    if (read_language_from_file(CONFIGPATH "/global.cfg", lang, sizeof(lang))) {
+        set_language_from_code(lang);
+        return;
+    }
+
+    if (read_language_from_file(GLOBALCONFIGFILE, lang, sizeof(lang))) {
+        set_language_from_code(lang);
+        return;
     }
 }
 
@@ -163,16 +177,11 @@ bool i18n_is_pl() {
 }
 
 const char *tr(const char *key) {
-    if (!key) return "";
-
-    if (g_lang != LANG_PL) return key;
-
-    for (int i = 0; TRANSLATIONS[i].key; i++) {
-        if (strcmp(TRANSLATIONS[i].key, key) == 0) {
-            return TRANSLATIONS[i].pl;
+    if (g_lang == LANG_PL) {
+        for (int i = 0; TRANSLATIONS[i].key; i++) {
+            if (strcmp(TRANSLATIONS[i].key, key) == 0) return TRANSLATIONS[i].pl;
         }
     }
-
     return key;
 }
 
@@ -182,85 +191,61 @@ const char *month_name_i18n(int month) {
 }
 
 const char *weekday_short_i18n(int weekday) {
-    static const char *EN[] = {"S", "M", "T", "W", "T", "F", "S"};
-    static const char *PL[] = {"N", "P", "W", "Ś", "C", "P", "S"};
-
-    if (weekday < 0 || weekday > 6) return "";
+    static const char *EN[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    static const char *PL[] = {"nd", "pn", "wt", "śr", "cz", "pt", "sb"};
+    if (weekday < 0 || weekday > 6) weekday = 0;
     return g_lang == LANG_PL ? PL[weekday] : EN[weekday];
 }
 
 std::string format_duration_i18n(long seconds) {
-    long h = seconds / 3600;
-    long m = (seconds % 3600) / 60;
-    char buf[64];
-
-    if (g_lang == LANG_PL) {
-        if (h <= 0) snprintf(buf, sizeof(buf), "%ld min", m);
-        else snprintf(buf, sizeof(buf), "%ld godz. %02ld min", h, m);
-    } else {
-        if (h <= 0) snprintf(buf, sizeof(buf), "%ldm", m);
-        else snprintf(buf, sizeof(buf), "%ldh %02ldm", h, m);
+    long minutes = seconds / 60;
+    if (minutes < 60) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%ld min", minutes);
+        return buf;
     }
 
-    return std::string(buf);
+    long hours = minutes / 60;
+    long rem = minutes % 60;
+    char buf[64];
+    if (rem == 0) snprintf(buf, sizeof(buf), "%ld h", hours);
+    else snprintf(buf, sizeof(buf), "%ld h %ld min", hours, rem);
+    return buf;
 }
 
 std::string books_count_i18n(int count) {
     char buf[64];
-
-    if (g_lang == LANG_PL) {
-        snprintf(buf, sizeof(buf), "%d %s", count, book_form_pl(count));
-    } else {
-        snprintf(buf, sizeof(buf), "%d book%s", count, count == 1 ? "" : "s");
-    }
-
-    return std::string(buf);
+    if (g_lang == LANG_PL) snprintf(buf, sizeof(buf), "%d %s", count, book_form_pl(count));
+    else snprintf(buf, sizeof(buf), "%d book%s", count, count == 1 ? "" : "s");
+    return buf;
 }
 
 std::string books_read_count_i18n(int count) {
-    char buf[96];
-
-    if (g_lang == LANG_PL) {
-        snprintf(buf, sizeof(buf), "Przeczytano %d %s", count, book_form_pl(count));
-    } else {
-        snprintf(buf, sizeof(buf), "%d book%s read", count, count == 1 ? "" : "s");
-    }
-
-    return std::string(buf);
+    return books_count_i18n(count);
 }
 
 std::string sessions_count_i18n(int count) {
     char buf[64];
-
-    if (g_lang == LANG_PL) {
-        snprintf(buf, sizeof(buf), "%d %s", count, session_form_pl(count));
-    } else {
-        snprintf(buf, sizeof(buf), "%d session%s", count, count == 1 ? "" : "s");
-    }
-
-    return std::string(buf);
+    if (g_lang == LANG_PL) snprintf(buf, sizeof(buf), "%d %s", count, session_form_pl(count));
+    else snprintf(buf, sizeof(buf), "%d session%s", count, count == 1 ? "" : "s");
+    return buf;
 }
 
 std::string sessions_short_i18n(int count) {
-    char buf[64];
-
+    char buf[32];
     if (g_lang == LANG_PL) snprintf(buf, sizeof(buf), "%d ses.", count);
-    else snprintf(buf, sizeof(buf), "%d sess", count);
-
-    return std::string(buf);
+    else snprintf(buf, sizeof(buf), "%d ses.", count);
+    return buf;
 }
 
 std::string percent_read_i18n(int percent) {
-    char buf[64];
-
-    if (g_lang == LANG_PL) snprintf(buf, sizeof(buf), "%d%% przeczytano", percent);
-    else snprintf(buf, sizeof(buf), "%d%% read", percent);
-
-    return std::string(buf);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%d%% %s", percent, g_lang == LANG_PL ? "przeczytano" : "read");
+    return buf;
 }
 
 std::string month_year_i18n(int year, int month) {
     char buf[64];
     snprintf(buf, sizeof(buf), "%s %d", month_name_i18n(month), year);
-    return std::string(buf);
+    return buf;
 }
