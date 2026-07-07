@@ -31,6 +31,15 @@
 #define KEY_NEXT2 KEY_NEXT
 #endif
 
+// Observed on PocketBook InkPad Color 3 debug logs:
+// type=25/key=25 => physical next-page press
+// type=25/key=24 => physical previous-page press
+// type=26        => release event, ignored to avoid double handling
+static const int IPC3_KEY_DOWN = 25;
+static const int IPC3_KEY_UP = 26;
+static const int IPC3_KEY_NEXT = 25;
+static const int IPC3_KEY_PREV = 24;
+
 static const char *DB_PATH = FLASHDIR "/system/pbreadstats/reading_stats.db";
 static const char *CFG_PATH = FLASHDIR "/system/pbreadstats/config.cfg";
 static const char *PID_PATH = "/tmp/pbreadstats.pid";
@@ -228,8 +237,9 @@ static void draw_header() {
 }
 
 static void draw_footer() {
-    char b[64];
-    snprintf(b, sizeof(b), "%d / %d", g_page_index + 1, PAGE_COUNT);
+    const char *name = g_page_index == PAGE_DASHBOARD ? tr("Overview") : (g_page_index == PAGE_ACTIVITY ? tr("Activity") : tr("History"));
+    char b[96];
+    snprintf(b, sizeof(b), "%s  ·  %d/%d", name, g_page_index + 1, PAGE_COUNT);
     DrawLine(S(36), ScreenHeight() - S(34), ScreenWidth() - S(36), ScreenHeight() - S(34), LGRAY);
     draw_centered(b, ScreenHeight() - S(27), g_font_small, DGRAY);
 }
@@ -549,6 +559,7 @@ static void go_next_page() {
 }
 
 static bool is_key_down_event(int type) {
+    if (type == IPC3_KEY_DOWN) return true;
     if (type == EVT_KEYPRESS) return true;
 #ifdef EVT_KEYDOWN
     if (type == EVT_KEYDOWN) return true;
@@ -557,6 +568,7 @@ static bool is_key_down_event(int type) {
 }
 
 static bool is_key_up_event(int type) {
+    if (type == IPC3_KEY_UP) return true;
 #ifdef EVT_KEYUP
     if (type == EVT_KEYUP) return true;
 #endif
@@ -585,11 +597,11 @@ static int handle_key(int type, int key) {
         CloseApp();
         return 1;
     }
-    if (key == KEY_RIGHT || key == KEY_NEXT || key == KEY_NEXT2) {
+    if (key == IPC3_KEY_NEXT || key == KEY_RIGHT || key == KEY_NEXT || key == KEY_NEXT2) {
         go_next_page();
         return 1;
     }
-    if (key == KEY_LEFT || key == KEY_PREV || key == KEY_PREV2) {
+    if (key == IPC3_KEY_PREV || key == KEY_LEFT || key == KEY_PREV || key == KEY_PREV2) {
         go_prev_page();
         return 1;
     }
