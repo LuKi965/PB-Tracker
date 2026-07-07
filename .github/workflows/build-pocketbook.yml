@@ -61,7 +61,13 @@ jobs:
           file "$SDK_ARCHIVE"
 
           if 7z t "$SDK_ARCHIVE" >/dev/null 2>&1; then
+            set +e
             7z x "$SDK_ARCHIVE" -o"$SDK_DIR" -y
+            SEVEN_Z_STATUS="$?"
+            set -e
+            if [ "$SEVEN_Z_STATUS" -ne 0 ]; then
+              echo "7z exited with status $SEVEN_Z_STATUS. PocketBook SDK archives contain symlinks that 7z may report as dangerous on GitHub runners. Continuing if core SDK files were extracted."
+            fi
           elif unzip -tq "$SDK_ARCHIVE" >/dev/null 2>&1; then
             unzip -q "$SDK_ARCHIVE" -d "$SDK_DIR"
           elif tar -tf "$SDK_ARCHIVE" >/dev/null 2>&1; then
@@ -76,6 +82,12 @@ jobs:
           echo "SDK unpacked to: $SDK_DIR"
           find "$SDK_DIR" -maxdepth 5 -type f -iname "*.cmake" | head -100
           find "$SDK_DIR" -maxdepth 7 -type f -name "inkview.h" | head -20
+
+          if ! find "$SDK_DIR" -type f -name "inkview.h" | grep -q .; then
+            echo "::error::SDK extraction did not produce inkview.h, so extraction did not succeed enough to build."
+            find "$SDK_DIR" -maxdepth 5 -type f | sort | head -200
+            exit 1
+          fi
 
       - name: Locate PocketBook toolchain
         run: |
