@@ -73,19 +73,12 @@ jobs:
           elif tar -tf "$SDK_ARCHIVE" >/dev/null 2>&1; then
             tar -xf "$SDK_ARCHIVE" -C "$SDK_DIR"
           else
-            echo "::error::Downloaded SDK is not a valid 7z/ZIP/TAR archive. The SDK URL probably points to a web page, login page, or blocked/private link instead of a direct file download."
-            echo "First 20 lines of the downloaded file, if text:"
-            sed -n '1,20p' "$SDK_ARCHIVE" || true
+            echo "::error::Downloaded SDK is not a valid 7z/ZIP/TAR archive."
             exit 1
           fi
 
-          echo "SDK unpacked to: $SDK_DIR"
-          find "$SDK_DIR" -maxdepth 5 -type f -iname "*.cmake" | head -100
-          find "$SDK_DIR" -maxdepth 7 -type f -name "inkview.h" | head -20
-
           if ! find "$SDK_DIR" -type f -name "inkview.h" | grep -q .; then
-            echo "::error::SDK extraction did not produce inkview.h, so extraction did not succeed enough to build."
-            find "$SDK_DIR" -maxdepth 5 -type f | sort | head -200
+            echo "::error::SDK extraction did not produce inkview.h."
             exit 1
           fi
 
@@ -102,29 +95,26 @@ jobs:
             if [ -z "$SDK_ROOT" ]; then
               SDK_ROOT="$SDK_DIR"
             fi
-
             SYSROOT="$(find "$SDK_ROOT" -type d -path '*/arm-obreey-linux-gnueabi/sysroot' | head -n 1)"
-            if [ -z "$SYSROOT" ]; then
-              SYSROOT="$(find "$SDK_ROOT" -type d -name sysroot | head -n 1)"
-            fi
-
-            CXX="$(find "$SDK_ROOT" \( -type f -o -type l \) \( -name 'arm-obreey-linux-gnueabi-g++' -o -name 'arm-linux-gnueabi-g++' -o -name 'arm-linux-g++' \) | head -n 1)"
-            CC="$(find "$SDK_ROOT" \( -type f -o -type l \) \( -name 'arm-obreey-linux-gnueabi-gcc' -o -name 'arm-linux-gnueabi-gcc' -o -name 'arm-linux-gcc' \) | head -n 1)"
-            INKVIEW="$(find "$SDK_ROOT" -type f -name inkview.h | head -n 1)"
-
-            if [ -z "$SYSROOT" ] || [ -z "$CXX" ] || [ -z "$CC" ] || [ -z "$INKVIEW" ]; then
-              echo "::error::Could not locate SDK sysroot/compiler/inkview.h."
-              echo "SDK_ROOT=$SDK_ROOT"
-              echo "SYSROOT=$SYSROOT"
-              echo "CC=$CC"
-              echo "CXX=$CXX"
-              echo "INKVIEW=$INKVIEW"
-              echo "Compiler candidates:"
-              find "$SDK_ROOT" \( -type f -o -type l \) \( -name '*gcc' -o -name '*g++' \) | sort | head -200
+            CXX="$(find "$SDK_ROOT" \( -type f -o -type l \) -name 'arm-obreey-linux-gnueabi-g++' | head -n 1)"
+            CC="$(find "$SDK_ROOT" \( -type f -o -type l \) -name 'arm-obreey-linux-gnueabi-gcc' | head -n 1)"
+            if [ -z "$SYSROOT" ] || [ -z "$CXX" ] || [ -z "$CC" ]; then
+              echo "::error::Could not locate SDK sysroot/compiler."
               exit 1
             fi
 
             chmod +x "$CC" "$CXX" || true
+
+            echo "Installing PocketBook compiler runtime libraries into /usr/local/lib"
+            for LIBPATTERN in 'libmpfr.so*' 'libgmp.so*' 'libmpc.so*' 'libisl.so*'; do
+              LIBFILE="$(find "$SDK_ROOT" \( -type f -o -type l \) -name "$LIBPATTERN" | head -n 1)"
+              if [ -n "$LIBFILE" ]; then
+                echo "Installing runtime library: $LIBFILE"
+                sudo cp -L "$LIBFILE" /usr/local/lib/
+              fi
+            done
+            sudo ldconfig
+
             TOOLCHAIN="$RUNNER_TEMP/ci-pocketbook-toolchain.cmake"
             cat > "$TOOLCHAIN" <<EOF
           set(CMAKE_SYSTEM_NAME Linux)
@@ -145,26 +135,16 @@ jobs:
 
           echo "Using toolchain: $TOOLCHAIN"
           echo "POCKETBOOK_TOOLCHAIN=$TOOLCHAIN" >> "$GITHUB_ENV"
-          echo "Generated/selected toolchain contents:"
           sed -n '1,160p' "$TOOLCHAIN"
 
       - name: Build package
         run: |
           set -x
           echo "POCKETBOOK_TOOLCHAIN=$POCKETBOOK_TOOLCHAIN"
-          echo "SDK_DIR=$SDK_DIR"
-          echo "Repository contents:"
-          find . -maxdepth 3 -type f | sort | head -200
-          echo "SDK executables and toolchain hints:"
-          find "$SDK_DIR" -maxdepth 8 \( -type f -o -type l \) \( -name "*gcc" -o -name "*g++" -o -name "*.cmake" -o -name "inkview.h" \) | sort | head -300
-
           bash -x scripts/build.sh || {
             STATUS="$?"
             echo "::error::Build package failed with exit code $STATUS"
-            echo "CMake logs, if present:"
             find build -type f \( -name CMakeError.log -o -name CMakeOutput.log \) -print -exec sed -n '1,220p' {} \; || true
-            echo "Build directory snapshot:"
-            find build -maxdepth 5 -type f | sort | head -300 || true
             exit "$STATUS"
           }
 
