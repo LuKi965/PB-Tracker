@@ -7,6 +7,7 @@ DIST_DIR="${ROOT_DIR}/dist"
 APP_NAME="ReadingStats.app"
 ICON_NAME="ReadingStats.app.bmp"
 SOURCE_ICON_NAME="Reading Stats.app.bmp"
+MAIN_CPP="${ROOT_DIR}/pb-reading-tracker/src/main.cpp"
 
 if [[ -z "${POCKETBOOK_TOOLCHAIN:-}" ]]; then
   echo "Set POCKETBOOK_TOOLCHAIN to your PocketBook CMake toolchain file." >&2
@@ -14,6 +15,16 @@ if [[ -z "${POCKETBOOK_TOOLCHAIN:-}" ]]; then
   echo "  export POCKETBOOK_TOOLCHAIN=/path/to/arm-obreey-linux-gnueabi.cmake" >&2
   exit 1
 fi
+
+python3 - "$MAIN_CPP" <<'PY'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+s = p.read_text()
+s = s.replace('''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event ignored by app UI: type=%d x=%d y=%d. PocketBook tap zones remain in control.", type, par1, par2);\n            return 0;''', '''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event: type=%d x=%d y=%d", type, par1, par2);\n            if (par2 < S(80) && par1 < S(110)) { CloseApp(); return 1; }\n            if (par1 < ScreenWidth() / 3) { go_prev_page(); return 1; }\n            if (par1 > (ScreenWidth() * 2) / 3) { go_next_page(); return 1; }\n            {\n                int pid = get_daemon_pid();\n                if (pid > 0) { kill(pid, SIGUSR1); usleep(150000); }\n                rebuild_pages();\n                draw_dashboard();\n            }\n            return 1;''')
+s = s.replace('''        case EVT_KEYPRESS:\n            db_log("EVT_KEYPRESS: key=%d", par1);''', '''#ifdef EVT_KEYDOWN\n        case EVT_KEYDOWN:\n#endif\n#ifdef EVT_KEYUP\n        case EVT_KEYUP:\n#endif\n#ifdef EVT_KEYRELEASE\n        case EVT_KEYRELEASE:\n#endif\n#ifdef EVT_KEYREPEAT\n        case EVT_KEYREPEAT:\n#endif\n        case EVT_KEYPRESS:\n            db_log("EVT_KEY: type=%d key=%d", type, par1);''')
+p.write_text(s)
+PY
 
 cmake -S "${ROOT_DIR}/pb-reading-tracker" \
       -B "${BUILD_DIR}" \
