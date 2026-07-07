@@ -21,7 +21,7 @@ from pathlib import Path
 import sys
 p = Path(sys.argv[1])
 s = p.read_text()
-s = s.replace('''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event ignored by app UI: type=%d x=%d y=%d. PocketBook tap zones remain in control.", type, par1, par2);\n            return 0;''', '''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event: type=%d x=%d y=%d", type, par1, par2);\n            if (par2 < S(80) && par1 < S(110)) { CloseApp(); return 1; }\n            if (par1 < ScreenWidth() / 3) { go_prev_page(); return 1; }\n            if (par1 > (ScreenWidth() * 2) / 3) { go_next_page(); return 1; }\n            rebuild_pages();\n            draw_dashboard();\n            return 1;''')
+s = s.replace('''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event ignored by app UI: type=%d x=%d y=%d. PocketBook tap zones remain in control.", type, par1, par2);\n            return 0;''', '''        case EVT_POINTERUP:\n        case EVT_TOUCHUP:\n            db_log("Touch event: type=%d x=%d y=%d", type, par1, par2);\n            {\n                int col = (par1 * 3) / ScreenWidth();\n                int row = (par2 * 3) / ScreenHeight();\n                if (col < 0) col = 0; if (col > 2) col = 2;\n                if (row < 0) row = 0; if (row > 2) row = 2;\n                if (row == 1 && col == 0) { go_prev_page(); return 1; }\n                if (row == 1 && col == 2) { go_next_page(); return 1; }\n                if (row == 1 && col == 1) { rebuild_pages(); draw_dashboard(); return 1; }\n            }\n            return 0;''')
 p.write_text(s)
 PY
 
