@@ -99,7 +99,24 @@ jobs:
           echo "POCKETBOOK_TOOLCHAIN=$TOOLCHAIN" >> "$GITHUB_ENV"
 
       - name: Build package
-        run: bash scripts/build.sh
+        run: |
+          set -x
+          echo "POCKETBOOK_TOOLCHAIN=$POCKETBOOK_TOOLCHAIN"
+          echo "SDK_DIR=$SDK_DIR"
+          echo "Repository contents:"
+          find . -maxdepth 3 -type f | sort | head -200
+          echo "SDK executables and toolchain hints:"
+          find "$SDK_DIR" -maxdepth 8 -type f \( -name "*gcc" -o -name "*g++" -o -name "*.cmake" -o -name "inkview.h" \) | sort | head -300
+
+          bash -x scripts/build.sh || {
+            STATUS="$?"
+            echo "::error::Build package failed with exit code $STATUS"
+            echo "CMake logs, if present:"
+            find build -type f \( -name CMakeError.log -o -name CMakeOutput.log \) -print -exec sed -n '1,220p' {} \; || true
+            echo "Build directory snapshot:"
+            find build -maxdepth 5 -type f | sort | head -300 || true
+            exit "$STATUS"
+          }
 
       - name: Upload Reading Stats package
         uses: actions/upload-artifact@v4
