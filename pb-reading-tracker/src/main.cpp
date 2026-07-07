@@ -121,12 +121,6 @@ static long total_seconds_for_books(const std::vector<BookPeriodEntry> &books) {
     return total;
 }
 
-static int total_sessions_for_books(const std::vector<BookPeriodEntry> &books) {
-    int total = 0;
-    for (size_t i = 0; i < books.size(); i++) total += books[i].session_count;
-    return total;
-}
-
 static std::string int_text(long v) {
     char b[32];
     snprintf(b, sizeof(b), "%ld", v);
@@ -187,6 +181,12 @@ static void draw_centered(const char *text, int y, ifont *font, int color) {
     DrawString((ScreenWidth() - w) / 2, y, text);
 }
 
+static void draw_centered_in(int x, int y, int w, ifont *font, int color, const char *text) {
+    SetFont(font, color);
+    int tw = StringWidth(text);
+    DrawString(x + (w - tw) / 2, y, text);
+}
+
 static void draw_right(const char *text, int right, int y, ifont *font, int color) {
     SetFont(font, color);
     DrawString(right - StringWidth(text), y, text);
@@ -203,10 +203,8 @@ static void draw_metric(int x, int y, int w, const char *value, const char *labe
     DrawLine(x, y, x, y + S(76), LGRAY);
     std::string v = truncate_to_width(value, w - S(18));
     std::string l = truncate_to_width(label, w - S(18));
-    draw_centered(v.c_str(), y + S(5), g_font_title, BLACK);
-    int vx = x + w / 2;
-    SetFont(g_font_small, DGRAY);
-    DrawString(vx - StringWidth(l.c_str()) / 2, y + S(42), l.c_str());
+    draw_centered_in(x, y + S(5), w, g_font_title, BLACK, v.c_str());
+    draw_centered_in(x, y + S(42), w, g_font_small, DGRAY, l.c_str());
 }
 
 static void draw_metric_cell(int index, int count, int y, const std::string &value, const std::string &label) {
@@ -252,7 +250,7 @@ static void draw_current_book(const BookTotal *book, int y) {
         else {
             FillArea(x, y, cover_w, cover_h, LGRAY);
             DrawRect(x, y, cover_w, cover_h, DGRAY);
-            draw_centered("PB", y + cover_h / 2 - S(10), g_font_small, DGRAY);
+            draw_centered_in(x, y + cover_h / 2 - S(10), cover_w, g_font_small, DGRAY, "PB");
         }
 
         std::string title = book->title.empty() ? tr("(untitled)") : book->title;
@@ -417,32 +415,44 @@ static void draw_page() {
     FullUpdate();
 }
 
-static void refresh_from_daemon() {
-    int pid = 0;
-    FILE *f = fopen(PID_PATH, "r");
-    if (f) {
-        fscanf(f, "%d", &pid);
-        fclose(f);
-    }
-    if (pid > 0) {
-        db_log("refresh_from_daemon: SIGUSR1 to daemon PID %d", pid);
-        kill(pid, SIGUSR1);
-        usleep(150000);
-    }
+static bool pid_belongs_to_this_app(int pid) {
+    char path[64];
+    snprintf(path, sizeof(path), "/proc/%d/cmdline", pid);
+    FILE *f = fopen(path, "r");
+    if (!f) return false;
+    char buf[512];
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    fclose(f);
+    if (n == 0) return false;
+    buf[n] = '\0';
+    for (size_t i = 0; i < n; i++) if (buf[i] == '\0') buf[i] = ' ';
+    return strstr(buf, "ReadingStats.app") || strstr(buf, "Reading Stats.app") || strstr(buf, "pbreadstats");
 }
 
 static int get_daemon_pid() {
     FILE *f = fopen(PID_PATH, "r");
     if (!f) return 0;
     int pid = 0;
-    if (fscanf(f, "%d", &pid) != 1) { fclose(f); return 0; }
+    if (fscanf(f, "%d", &pid) != 1) { fclose(f); unlink(PID_PATH); return 0; }
     fclose(f);
 
     char path[64];
     snprintf(path, sizeof(path), "/proc/%d", pid);
     FILE *proc = fopen(path, "r");
-    if (proc) { fclose(proc); return pid; }
-    return 0;
+    if (proc) fclose(proc);
+    if (!proc || !pid_belongs_to_this_app(pid)) {
+        unlink(PID_PATH);
+        return 0;
+    }
+    return pid;
+}
+
+static void refresh_from_daemon() {
+    int pid = get_daemon_pid();
+    if (pid > 0) {
+        kill(pid, SIGUSR1);
+        usleep(150000);
+    }
 }
 
 static std::string get_executable_path() {
@@ -464,6 +474,7 @@ static void start_daemon() {
         db_log("start_daemon: daemon already running.");
         return;
     }
+    unlink(PID_PATH);
     std::string exe_path = get_executable_path();
     if (exe_path.empty()) {
         db_log("start_daemon: failed to resolve executable path.");
@@ -472,6 +483,10 @@ static void start_daemon() {
     std::string cmd = "\"" + exe_path + "\" --daemon &";
     db_log("start_daemon: %s", cmd.c_str());
     system(cmd.c_str());
+    for (int i = 0; i < 10; i++) {
+        usleep(100000);
+        if (get_daemon_pid() > 0) return;
+    }
 }
 
 static void stop_daemon_for_usb() {
@@ -507,6 +522,7 @@ static void run_daemon() {
 
     if (!db_open(DB_PATH)) {
         db_log("run_daemon: failed to open DB.");
+        unlink(PID_PATH);
         return;
     }
 
@@ -550,7 +566,7 @@ static bool is_key_event(int type) {
 }
 
 static int handle_touch(int type, int x, int y) {
-    db_log("Touch event: type=%d x=%d y=%d", type, x, y);
+    (void)type;
     int col = (x * 3) / ScreenWidth();
     int row = (y * 3) / ScreenHeight();
     if (col < 0) col = 0; if (col > 2) col = 2;
