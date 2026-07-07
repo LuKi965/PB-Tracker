@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Reading Stats.app
+    name: Build ReadingStats.app
     runs-on: ubuntu-latest
     env:
       DEFAULT_POCKETBOOK_SDK_URL: https://github.com/pocketbook/SDK_6.3.0/releases/download/6.8/SDK-B300-6.8.7z
@@ -148,11 +148,11 @@ jobs:
             exit "$STATUS"
           }
 
-      - name: Upload Reading Stats package
+      - name: Upload ReadingStats package
         uses: actions/upload-artifact@v4
         with:
           name: reading-stats-pocketbook
           path: |
-            dist/Reading Stats.app
-            dist/Reading Stats.app.bmp
+            dist/*.app
+            dist/*.bmp
           if-no-files-found: error
