@@ -18,12 +18,15 @@ jobs:
     env:
       POCKETBOOK_SDK_URL: ${{ secrets.POCKETBOOK_SDK_URL }}
       TOOLCHAIN_RELATIVE: ${{ inputs.toolchain_relative }}
-      SDK_DIR: ${{ runner.temp }}/pocketbook-sdk
-      SDK_ARCHIVE: ${{ runner.temp }}/pocketbook-sdk.archive
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare paths
+        run: |
+          echo "SDK_DIR=$RUNNER_TEMP/pocketbook-sdk" >> "$GITHUB_ENV"
+          echo "SDK_ARCHIVE=$RUNNER_TEMP/pocketbook-sdk.archive" >> "$GITHUB_ENV"
 
       - name: Install build tools
         run: |
