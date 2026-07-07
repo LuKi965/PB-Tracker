@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Prepare paths
         run: |
@@ -42,8 +42,10 @@ jobs:
 
       - name: Download PocketBook SDK
         run: |
-          curl -L --fail --retry 3 "$POCKETBOOK_SDK_URL" -o "$SDK_ARCHIVE"
+          echo "Downloading PocketBook SDK from repository secret POCKETBOOK_SDK_URL..."
+          curl -L --fail-with-body --show-error --retry 3 "$POCKETBOOK_SDK_URL" -o "$SDK_ARCHIVE"
           file "$SDK_ARCHIVE"
+          ls -lh "$SDK_ARCHIVE"
 
       - name: Unpack PocketBook SDK
         run: |
@@ -81,7 +83,7 @@ jobs:
         run: bash scripts/build.sh
 
       - name: Upload Reading Stats package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reading-stats-pocketbook
           path: |
