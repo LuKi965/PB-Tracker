@@ -508,7 +508,7 @@ static void sigterm_handler(int signum) {
 
 static void sigusr1_handler(int signum) {
     (void)signum;
-    tracker_flush();
+    tracker_poll();
 }
 
 static void run_daemon() {
@@ -548,19 +548,20 @@ static void go_next_page() {
     }
 }
 
-static bool is_key_event(int type) {
+static bool is_key_down_event(int type) {
     if (type == EVT_KEYPRESS) return true;
 #ifdef EVT_KEYDOWN
     if (type == EVT_KEYDOWN) return true;
 #endif
+    return false;
+}
+
+static bool is_key_up_event(int type) {
 #ifdef EVT_KEYUP
     if (type == EVT_KEYUP) return true;
 #endif
 #ifdef EVT_KEYRELEASE
     if (type == EVT_KEYRELEASE) return true;
-#endif
-#ifdef EVT_KEYREPEAT
-    if (type == EVT_KEYREPEAT) return true;
 #endif
     return false;
 }
@@ -579,7 +580,7 @@ static int handle_touch(int type, int x, int y) {
 }
 
 static int handle_key(int type, int key) {
-    db_log("Key event: type=%d key=%d", type, key);
+    db_log("Key down: type=%d key=%d", type, key);
     if (key == KEY_BACK) {
         CloseApp();
         return 1;
@@ -596,7 +597,8 @@ static int handle_key(int type, int key) {
 }
 
 static int main_handler(int type, int par1, int par2) {
-    if (is_key_event(type)) return handle_key(type, par1);
+    if (is_key_down_event(type)) return handle_key(type, par1);
+    if (is_key_up_event(type)) return 1;
 
     switch (type) {
         case EVT_INIT:
