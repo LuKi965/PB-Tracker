@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout product-v2
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           ref: product-v2
 
@@ -33,7 +33,7 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential unzip file
+          sudo apt-get install -y cmake build-essential unzip file p7zip-full
 
       - name: Check SDK URL secret
         run: |
@@ -46,17 +46,29 @@ jobs:
         run: |
           echo "Downloading PocketBook SDK from repository secret POCKETBOOK_SDK_URL..."
           curl -L --fail-with-body --show-error --retry 3 "$POCKETBOOK_SDK_URL" -o "$SDK_ARCHIVE"
+          echo "Downloaded SDK archive candidate:"
           file "$SDK_ARCHIVE"
           ls -lh "$SDK_ARCHIVE"
 
       - name: Unpack PocketBook SDK
         run: |
           mkdir -p "$SDK_DIR"
-          if unzip -tq "$SDK_ARCHIVE" >/dev/null 2>&1; then
+          echo "Archive type:"
+          file "$SDK_ARCHIVE"
+
+          if 7z t "$SDK_ARCHIVE" >/dev/null 2>&1; then
+            7z x "$SDK_ARCHIVE" -o"$SDK_DIR" -y
+          elif unzip -tq "$SDK_ARCHIVE" >/dev/null 2>&1; then
             unzip -q "$SDK_ARCHIVE" -d "$SDK_DIR"
-          else
+          elif tar -tf "$SDK_ARCHIVE" >/dev/null 2>&1; then
             tar -xf "$SDK_ARCHIVE" -C "$SDK_DIR"
+          else
+            echo "::error::Downloaded SDK is not a valid 7z/ZIP/TAR archive. The SDK URL probably points to a web page, login page, or blocked/private link instead of a direct file download."
+            echo "First 20 lines of the downloaded file, if text:"
+            sed -n '1,20p' "$SDK_ARCHIVE" || true
+            exit 1
           fi
+
           echo "SDK unpacked to: $SDK_DIR"
           find "$SDK_DIR" -maxdepth 4 -type f -iname "*.cmake" | head -50
 
@@ -85,7 +97,7 @@ jobs:
         run: bash scripts/build.sh
 
       - name: Upload Reading Stats package
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: reading-stats-pocketbook
           path: |
