@@ -6,6 +6,7 @@ Files from the GitHub Actions artifact:
 - ReadingStats.app
 - ReadingStats.app.bmp
 - ReadingStats.bmp
+- install-pocketbook.txt
 
 Copy the app file to the PocketBook applications directory:
 
@@ -20,6 +21,10 @@ Current known launcher limitation:
 - On InkPad Color 3 the launcher may still show the app as @ReadingStats.
 - The icon may still be missing. The app itself is not blocked by this.
 
+Runtime directory kept intentionally unchanged:
+
+  /system/pbreadstats/
+
 Optional config file:
 
   /system/pbreadstats/config.cfg
@@ -32,6 +37,14 @@ Useful config values:
 Safe diagnostic mode:
 
   daemon=0
+
+Debug logging:
+
+  debug=1
+
+or create this trigger file:
+
+  /system/pbreadstats/LOGTRIGGER.TXT
 
 Generated runtime files:
 
