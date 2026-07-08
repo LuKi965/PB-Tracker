@@ -9,8 +9,6 @@ static std::string to_string_impl(int v) { char b[32]; snprintf(b, sizeof(b), "%
 #include <cstring>
 #include <time.h>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <errno.h>
 #include <map>
 #include <algorithm>
 #include <set>
@@ -27,7 +25,6 @@ struct NativeProgress {
 };
 
 static sqlite3 *g_db = NULL;
-static const char *APP_DIR = FLASHDIR "/system/pbreadstats";
 
 static const char *MONTH_NAMES[] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
@@ -36,14 +33,6 @@ static const char *MONTH_NAMES[] = {
 static const char *WEEKDAY_NAMES[] = {
     "Sun","Mon","Tue","Wed","Thu","Fri","Sat" // matches strftime('%w'): 0=Sunday
 };
-
-static void ensure_app_dir() {
-    // Keep the runtime/data directory exactly where earlier builds used it.
-    // mkdir is intentionally non-fatal: existing directory and read-only errors
-    // are handled later by sqlite/log open calls.
-    mkdir(FLASHDIR "/system", 0777);
-    mkdir(APP_DIR, 0777);
-}
 
 static bool open_native_progress_db(sqlite3 **out) {
     *out = NULL;
@@ -296,7 +285,6 @@ int db_import_native_books() {
 
 bool db_open(const std::string &db_path) {
     if (g_db) return true;
-    ensure_app_dir();
     if (sqlite3_open(db_path.c_str(), &g_db) != SQLITE_OK) {
         if (g_db) { sqlite3_close(g_db); g_db = NULL; }
         return false;
@@ -732,8 +720,7 @@ StreakInfo db_get_streaks() {
 }
 
 void db_log(const char *fmt, ...) {
-    ensure_app_dir();
-    std::string log_path = std::string(APP_DIR) + "/debug.log";
+    std::string log_path = std::string(FLASHDIR) + "/system/pbreadstats/debug.log";
     FILE *f = fopen(log_path.c_str(), "a");
     if (!f) return;
     time_t now = time(NULL);
