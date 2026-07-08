@@ -304,18 +304,22 @@ static void draw_progress_bar(int x, int y, int w, int h, float progress) {
     FillArea(x + 1, y + 1, (int)((w - 2) * progress), h - 2, BLACK);
 }
 
+static const char *page_name() {
+    if (g_page_index == PAGE_DASHBOARD) return tr("Overview");
+    if (g_page_index == PAGE_ACTIVITY) return tr("Activity");
+    return tr("Library");
+}
+
 static void draw_header() {
     FillArea(0, 0, ScreenWidth(), S(48), WHITE);
-    draw_centered(tr("Reading Stats"), S(13), g_font_small, DGRAY);
+    char b[96];
+    snprintf(b, sizeof(b), "%s  ·  %d/%d", page_name(), g_page_index + 1, PAGE_COUNT);
+    draw_centered(b, S(14), g_font_small, DGRAY);
     DrawLine(S(22), S(48), ScreenWidth() - S(22), S(48), LGRAY);
 }
 
 static void draw_footer() {
-    const char *name = g_page_index == PAGE_DASHBOARD ? tr("Overview") : (g_page_index == PAGE_ACTIVITY ? tr("Activity") : tr("Library"));
-    char b[96];
-    snprintf(b, sizeof(b), "%s  ·  %d/%d", name, g_page_index + 1, PAGE_COUNT);
-    DrawLine(S(36), ScreenHeight() - S(34), ScreenWidth() - S(36), ScreenHeight() - S(34), LGRAY);
-    draw_centered(b, ScreenHeight() - S(27), g_font_small, DGRAY);
+    // Intentionally empty. The active page label lives in the top header now.
 }
 
 static void draw_current_book(const BookTotal *book, int y) {
@@ -735,7 +739,7 @@ static int handle_touch(int type, int x, int y) {
 }
 
 static int handle_key(int type, int key) {
-    db_log("Key down: type=%d key=%d", type, key);
+    (void)type;
     if (key == KEY_BACK) {
         CloseApp();
         return 1;
