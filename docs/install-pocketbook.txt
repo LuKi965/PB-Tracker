@@ -1,0 +1,56 @@
+Reading Stats for PocketBook - install notes
+
+Tested target: PocketBook InkPad Color 3 / SDK 6.8 build.
+
+Files from the GitHub Actions artifact:
+- ReadingStats.app
+- ReadingStats.app.bmp
+- ReadingStats.bmp
+
+Copy the app file to the PocketBook applications directory:
+
+  applications/ReadingStats.app
+
+Copy the bitmap files to the same directory while testing:
+
+  applications/ReadingStats.app.bmp
+  applications/ReadingStats.bmp
+
+Current known launcher limitation:
+- On InkPad Color 3 the launcher may still show the app as @ReadingStats.
+- The icon may still be missing. The app itself is not blocked by this.
+
+Optional config file:
+
+  /system/pbreadstats/config.cfg
+
+Useful config values:
+
+  language=pl
+  daemon=1
+
+Safe diagnostic mode:
+
+  daemon=0
+
+Generated runtime files:
+
+  /system/pbreadstats/reading_stats.db
+  /system/pbreadstats/debug.log
+  /tmp/pbreadstats.pid
+
+Clean uninstall for testing:
+
+  Remove applications/ReadingStats.app
+  Remove applications/ReadingStats.app.bmp
+  Remove applications/ReadingStats.bmp
+  Remove /system/pbreadstats/
+
+Controls on InkPad Color 3:
+
+  Touch middle-left  = previous screen
+  Touch middle-right = next screen
+  Touch center       = refresh data
+  Physical left key  = previous screen
+  Physical right key = next screen
+  Home               = exit app
