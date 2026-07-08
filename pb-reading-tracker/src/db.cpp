@@ -9,6 +9,8 @@ static std::string to_string_impl(int v) { char b[32]; snprintf(b, sizeof(b), "%
 #include <cstring>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <map>
 #include <algorithm>
 #include <set>
@@ -25,6 +27,7 @@ struct NativeProgress {
 };
 
 static sqlite3 *g_db = NULL;
+static const char *APP_DIR = FLASHDIR "/system/pbreadstats";
 
 static const char *MONTH_NAMES[] = {
     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
@@ -33,6 +36,14 @@ static const char *MONTH_NAMES[] = {
 static const char *WEEKDAY_NAMES[] = {
     "Sun","Mon","Tue","Wed","Thu","Fri","Sat" // matches strftime('%w'): 0=Sunday
 };
+
+static void ensure_app_dir() {
+    // Keep the runtime/data directory exactly where earlier builds used it.
+    // mkdir is intentionally non-fatal: existing directory and read-only errors
+    // are handled later by sqlite/log open calls.
+    mkdir(FLASHDIR "/system", 0777);
+    mkdir(APP_DIR, 0777);
+}
 
 static bool open_native_progress_db(sqlite3 **out) {
     *out = NULL;
@@ -285,6 +296,7 @@ int db_import_native_books() {
 
 bool db_open(const std::string &db_path) {
     if (g_db) return true;
+    ensure_app_dir();
     if (sqlite3_open(db_path.c_str(), &g_db) != SQLITE_OK) {
         if (g_db) { sqlite3_close(g_db); g_db = NULL; }
         return false;
@@ -318,9 +330,9 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
 
     // 1. Try to update existing session
     sqlite3_stmt *stmt = NULL;
-    sqlite3_prepare_v2(g_db,
+    if (sqlite3_prepare_v2(g_db,
         "UPDATE sessions SET end_time=?, duration_seconds=? WHERE path=? AND start_time=?;",
-        -1, &stmt, NULL);
+        -1, &stmt, NULL) != SQLITE_OK) return false;
     sqlite3_bind_int64(stmt, 1, (sqlite3_int64)end_time);
     sqlite3_bind_int64(stmt, 2, (sqlite3_int64)total_duration);
     sqlite3_bind_text(stmt, 3, meta.path.c_str(), -1, SQLITE_TRANSIENT);
@@ -331,9 +343,9 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
 
     if (changes == 0) {
         // Doesn't exist yet, insert it
-        sqlite3_prepare_v2(g_db,
+        if (sqlite3_prepare_v2(g_db,
             "INSERT INTO sessions (path, start_time, end_time, duration_seconds) VALUES (?, ?, ?, ?);",
-            -1, &stmt, NULL);
+            -1, &stmt, NULL) != SQLITE_OK) { sqlite3_exec(g_db, "ROLLBACK;", NULL, NULL, NULL); return false; }
         sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int64(stmt, 2, (sqlite3_int64)start_time);
         sqlite3_bind_int64(stmt, 3, (sqlite3_int64)end_time);
@@ -343,9 +355,9 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
     }
 
     // 2. Update books table
-    sqlite3_prepare_v2(g_db,
+    if (sqlite3_prepare_v2(g_db,
         "UPDATE books SET last_opened=?, total_seconds=total_seconds+? WHERE path=?;",
-        -1, &stmt, NULL);
+        -1, &stmt, NULL) != SQLITE_OK) { sqlite3_exec(g_db, "ROLLBACK;", NULL, NULL, NULL); return false; }
     sqlite3_bind_int64(stmt, 1, (sqlite3_int64)end_time);
     sqlite3_bind_int64(stmt, 2, (sqlite3_int64)incremental_duration);
     sqlite3_bind_text(stmt, 3, meta.path.c_str(), -1, SQLITE_TRANSIENT);
@@ -355,11 +367,11 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
 
     if (changes == 0) {
         // Doesn't exist yet, insert it
-        sqlite3_prepare_v2(g_db,
+        if (sqlite3_prepare_v2(g_db,
             "INSERT INTO books (path, title, author, series, genre, year, size_bytes, "
             "  first_opened, last_opened, total_seconds, session_count) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1);",
-            -1, &stmt, NULL);
+            -1, &stmt, NULL) != SQLITE_OK) { sqlite3_exec(g_db, "ROLLBACK;", NULL, NULL, NULL); return false; }
         sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, meta.title.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 3, meta.author.c_str(), -1, SQLITE_TRANSIENT);
@@ -375,10 +387,11 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
     } else if (total_duration == incremental_duration) {
         // It existed in books, but this is the FIRST save of this session,
         // so we need to bump the session count.
-        sqlite3_prepare_v2(g_db, "UPDATE books SET session_count=session_count+1 WHERE path=?;", -1, &stmt, NULL);
-        sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
+        if (sqlite3_prepare_v2(g_db, "UPDATE books SET session_count=session_count+1 WHERE path=?;", -1, &stmt, NULL) == SQLITE_OK) {
+            sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+        }
     }
 
     NativeProgress np = get_native_progress(meta.path);
@@ -719,7 +732,8 @@ StreakInfo db_get_streaks() {
 }
 
 void db_log(const char *fmt, ...) {
-    std::string log_path = std::string(FLASHDIR) + "/system/pbreadstats/debug.log";
+    ensure_app_dir();
+    std::string log_path = std::string(APP_DIR) + "/debug.log";
     FILE *f = fopen(log_path.c_str(), "a");
     if (!f) return;
     time_t now = time(NULL);
