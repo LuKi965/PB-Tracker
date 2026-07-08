@@ -434,7 +434,10 @@ static void draw_activity_page() {
     int y = S(108);
     int margin = S(36);
     int row_h = S(48);
-    int max_bar_w = ScreenWidth() - S(220);
+    int bar_x = margin + S(120);
+    int value_right = ScreenWidth() - margin;
+    int max_bar_w = value_right - S(82) - bar_x;
+    if (max_bar_w < S(40)) max_bar_w = S(40);
     long max_seconds = 1;
     long total = 0;
     int active_days = 0;
@@ -461,8 +464,8 @@ static void draw_activity_page() {
         draw_text(margin, y, g_font_small, DGRAY, label.c_str());
         int bw = (int)((double)max_bar_w * (double)d.total_seconds / (double)max_seconds);
         if (d.total_seconds > 0 && bw < S(6)) bw = S(6);
-        FillArea(margin + S(120), y + S(5), bw, S(16), BLACK);
-        draw_right(format_duration_i18n(d.total_seconds).c_str(), ScreenWidth() - margin, y, g_font_small, BLACK);
+        FillArea(bar_x, y + S(5), bw, S(16), BLACK);
+        draw_right(format_duration_i18n(d.total_seconds).c_str(), value_right, y, g_font_small, BLACK);
         y += row_h;
     }
 }
