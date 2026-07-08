@@ -6,16 +6,25 @@ Files from the GitHub Actions artifact:
 - ReadingStats.app
 - ReadingStats.app.bmp
 - ReadingStats.bmp
+- ReadingStats_f.bmp
 - install-pocketbook.txt
 
 Copy the app file to the PocketBook applications directory:
 
   applications/ReadingStats.app
 
-Basic bitmap files from the artifact can be copied to the same directory while testing:
+For launcher icons, create this directory on the device:
+
+  applications/icons/
+
+Then copy icon files from the artifact as:
+
+  applications/icons/ReadingStats.bmp
+  applications/icons/ReadingStats_f.bmp
+
+The compatibility bitmap can also be copied next to the app while testing:
 
   applications/ReadingStats.app.bmp
-  applications/ReadingStats.bmp
 
 Launcher registration / name and icon:
 
