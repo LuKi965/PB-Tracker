@@ -17,9 +17,28 @@ Copy the bitmap files to the same directory while testing:
   applications/ReadingStats.app.bmp
   applications/ReadingStats.bmp
 
-Current known launcher limitation:
-- On InkPad Color 3 the launcher may still show the app as @ReadingStats.
-- The icon may still be missing. The app itself is not blocked by this.
+Launcher registration / name and icon:
+
+PocketBook custom applications can be registered in the launcher view config as
+user apps. User app ids must start with U_. A useful ReadingStats entry is:
+
+  "U_ReadingStats": {
+    "path": "applications/ReadingStats.app",
+    "title": "Statystyki czytania",
+    "icon": { "path": "applications/ReadingStats.bmp" },
+    "focused_icon": { "path": "applications/ReadingStats.bmp" }
+  }
+
+Then add U_ReadingStats to one of the view groups, for example @General:
+
+  "apps": [
+    "U_ReadingStats",
+    "PB_AudioBooks",
+    "PB_Browser"
+  ]
+
+Keep a backup of the original system view config before editing it. Invalid JSON
+may break the Applications menu until the file is restored.
 
 Runtime directory kept intentionally unchanged:
 
@@ -58,6 +77,7 @@ Clean uninstall for testing:
   Remove applications/ReadingStats.app.bmp
   Remove applications/ReadingStats.bmp
   Remove /system/pbreadstats/
+  Remove U_ReadingStats from the launcher view config if you added it.
 
 Controls on InkPad Color 3:
 
