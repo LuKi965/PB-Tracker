@@ -12,7 +12,7 @@ Copy the app file to the PocketBook applications directory:
 
   applications/ReadingStats.app
 
-Copy the bitmap files to the same directory while testing:
+Basic bitmap files from the artifact can be copied to the same directory while testing:
 
   applications/ReadingStats.app.bmp
   applications/ReadingStats.bmp
@@ -20,13 +20,31 @@ Copy the bitmap files to the same directory while testing:
 Launcher registration / name and icon:
 
 PocketBook custom applications can be registered in the launcher view config as
-user apps. User app ids must start with U_. A useful ReadingStats entry is:
+user apps. User app ids must start with U_. The launcher config is usually here:
+
+  /system/config/desktop/view.json
+
+Keep a backup of the original view.json before editing it. Invalid JSON may show
+an error popup or break the Applications menu until the file is restored.
+
+Recommended icon layout based on KOReader customization notes:
+
+  applications/icons/ReadingStats.bmp
+  applications/icons/ReadingStats_f.bmp
+
+Icon requirements seen in PocketBook customization examples:
+
+  BMP format
+  8-bit color depth
+  tested max around 106 px wide and 128 px high
+
+Recommended ReadingStats entry using absolute paths:
 
   "U_ReadingStats": {
-    "path": "applications/ReadingStats.app",
+    "path": "/mnt/ext1/applications/ReadingStats.app",
     "title": "Statystyki czytania",
-    "icon": { "path": "applications/ReadingStats.bmp" },
-    "focused_icon": { "path": "applications/ReadingStats.bmp" }
+    "icon": "/mnt/ext1/applications/icons/ReadingStats.bmp",
+    "focused_icon": "/mnt/ext1/applications/icons/ReadingStats_f.bmp"
   }
 
 Then add U_ReadingStats to one of the view groups, for example @General:
@@ -37,8 +55,16 @@ Then add U_ReadingStats to one of the view groups, for example @General:
     "PB_Browser"
   ]
 
-Keep a backup of the original system view config before editing it. Invalid JSON
-may break the Applications menu until the file is restored.
+Name-only fallback:
+
+If the app still appears as @ReadingStats, the display name can also be mapped
+through the language file matching your UI language, for example:
+
+  /system/language/pl.txt
+
+Add a line like:
+
+  @ReadingStats=Statystyki czytania
 
 Runtime directory kept intentionally unchanged:
 
@@ -76,8 +102,11 @@ Clean uninstall for testing:
   Remove applications/ReadingStats.app
   Remove applications/ReadingStats.app.bmp
   Remove applications/ReadingStats.bmp
+  Remove applications/icons/ReadingStats.bmp
+  Remove applications/icons/ReadingStats_f.bmp
   Remove /system/pbreadstats/
   Remove U_ReadingStats from the launcher view config if you added it.
+  Remove @ReadingStats from the language file if you added it.
 
 Controls on InkPad Color 3:
 
