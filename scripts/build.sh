@@ -5,8 +5,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${ROOT_DIR}/build/pocketbook"
 DIST_DIR="${ROOT_DIR}/dist"
 APP_NAME="ReadingStats.app"
-ICON_NAME="ReadingStats.app.bmp"
-SOURCE_ICON_NAME="Reading Stats.app.bmp"
+APP_ICON_NAME="ReadingStats.app.bmp"
+ICON_NAME="ReadingStats.bmp"
+FOCUSED_ICON_NAME="ReadingStats_f.bmp"
+LEGACY_SOURCE_ICON_NAME="Reading Stats.app.bmp"
 
 if [[ -z "${POCKETBOOK_TOOLCHAIN:-}" ]]; then
   echo "Set POCKETBOOK_TOOLCHAIN to your PocketBook CMake toolchain file." >&2
@@ -29,17 +31,32 @@ if [[ -f "${ROOT_DIR}/assets/${ICON_NAME}" ]]; then
   cp "${ROOT_DIR}/assets/${ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
 elif [[ -f "${ROOT_DIR}/assets/${ICON_NAME}.base64" ]]; then
   base64 -d "${ROOT_DIR}/assets/${ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${SOURCE_ICON_NAME}" ]]; then
-  cp "${ROOT_DIR}/assets/${SOURCE_ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${SOURCE_ICON_NAME}.base64" ]]; then
-  base64 -d "${ROOT_DIR}/assets/${SOURCE_ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
+elif [[ -f "${ROOT_DIR}/assets/${APP_ICON_NAME}" ]]; then
+  cp "${ROOT_DIR}/assets/${APP_ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
+elif [[ -f "${ROOT_DIR}/assets/${APP_ICON_NAME}.base64" ]]; then
+  base64 -d "${ROOT_DIR}/assets/${APP_ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
+elif [[ -f "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}" ]]; then
+  cp "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
+elif [[ -f "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}.base64" ]]; then
+  base64 -d "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
+fi
+
+if [[ -f "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}" ]]; then
+  cp "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}" "${DIST_DIR}/${FOCUSED_ICON_NAME}"
+elif [[ -f "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}.base64" ]]; then
+  base64 -d "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}.base64" > "${DIST_DIR}/${FOCUSED_ICON_NAME}"
+elif [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
+  cp "${DIST_DIR}/${ICON_NAME}" "${DIST_DIR}/${FOCUSED_ICON_NAME}"
 fi
 
 if [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
-  cp "${DIST_DIR}/${ICON_NAME}" "${DIST_DIR}/ReadingStats.bmp"
+  cp "${DIST_DIR}/${ICON_NAME}" "${DIST_DIR}/${APP_ICON_NAME}"
 fi
 
 echo "Built: ${DIST_DIR}/${APP_NAME}"
 if [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
   echo "Icon:  ${DIST_DIR}/${ICON_NAME}"
+fi
+if [[ -f "${DIST_DIR}/${FOCUSED_ICON_NAME}" ]]; then
+  echo "Focus: ${DIST_DIR}/${FOCUSED_ICON_NAME}"
 fi
