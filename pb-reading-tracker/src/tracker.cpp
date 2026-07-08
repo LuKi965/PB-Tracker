@@ -40,7 +40,7 @@ static bool looks_like_book(const std::string &path) {
         if (lower[i] >= 'A' && lower[i] <= 'Z') lower[i] += 32;
     for (int i = 0; exts[i]; i++) {
         size_t elen = strlen(exts[i]);
-        if (lower.size() >= elen && lower.compare(lower.size() - elen, elen, exts[i]) == 0)
+        if (lower.size() >= elen && lower.compare(lower.size() - elen, elen) == 0)
             return true;
     }
     return false;
@@ -162,8 +162,18 @@ static void close_session(time_t end_time) {
     long inc_duration = (long)(end_time - g_session.last_sync_time);
 
     if (total_duration >= MIN_SESSION_SECONDS) {
-        bool ok = db_update_active_session(g_session.meta, g_session.start_time, end_time, inc_duration);
-        db_log("close_session: %s '%s' total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), total_duration, inc_duration);
+        if (inc_duration <= 0) {
+            if (g_session.saved_once) {
+                db_log("close_session: already saved '%s' total=%ld inc=%ld", g_session.path.c_str(), total_duration, inc_duration);
+            } else {
+                inc_duration = total_duration;
+                bool ok = db_update_active_session(g_session.meta, g_session.start_time, end_time, inc_duration);
+                db_log("close_session: %s '%s' total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), total_duration, inc_duration);
+            }
+        } else {
+            bool ok = db_update_active_session(g_session.meta, g_session.start_time, end_time, inc_duration);
+            db_log("close_session: %s '%s' total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), total_duration, inc_duration);
+        }
     } else {
         db_log("close_session: ignored short session '%s' duration=%ld", g_session.path.c_str(), total_duration);
     }
