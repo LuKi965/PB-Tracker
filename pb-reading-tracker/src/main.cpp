@@ -150,6 +150,32 @@ static std::string avg_session_text(long total_seconds, int sessions) {
     return b;
 }
 
+static int progress_percent(float progress) {
+    if (progress < 0.0f) progress = 0.0f;
+    if (progress > 1.0f) progress = 1.0f;
+    return (int)(progress * 100.0f + 0.5f);
+}
+
+static bool book_has_native_progress(const BookTotal &book) {
+    return book.native_last_seen > 0 || book.native_npage > 0 || book.imported_native || book.progress > 0.0f || book.finished;
+}
+
+static bool book_in_progress(const BookTotal &book) {
+    return book_has_native_progress(book) && book.progress > 0.0f && !book.finished;
+}
+
+static int count_in_progress(const std::vector<BookTotal> &books) {
+    int count = 0;
+    for (size_t i = 0; i < books.size(); i++) if (book_in_progress(books[i])) count++;
+    return count;
+}
+
+static int count_tracked_books(const std::vector<BookTotal> &books) {
+    int count = 0;
+    for (size_t i = 0; i < books.size(); i++) if (books[i].session_count > 0 || books[i].total_seconds > 0) count++;
+    return count;
+}
+
 static bool cfg_value_disables(const char *line, const char *key) {
     size_t len = strlen(key);
     if (strncmp(line, key, len) != 0) return false;
@@ -273,13 +299,21 @@ static void draw_current_book(const BookTotal *book, int y) {
         std::string author = book->author;
         title = truncate_to_width(title, max_tw);
         author = truncate_to_width(author, max_tw);
-        draw_text(tx, y + S(4), g_font_title, BLACK, title.c_str());
-        if (!author.empty()) draw_text(tx, y + S(39), g_font_small, DGRAY, author.c_str());
+        draw_text(tx, y + S(0), g_font_title, BLACK, title.c_str());
+        if (!author.empty()) draw_text(tx, y + S(34), g_font_small, DGRAY, author.c_str());
 
-        std::string progress = percent_read_i18n((int)(book->progress * 100.0f));
-        draw_text(tx, y + S(78), g_font_small, DGRAY, tr("Book progress"));
-        draw_text(tx, y + S(102), g_font_body, BLACK, progress.c_str());
-        draw_progress_bar(tx + S(115), y + S(111), max_tw - S(115), S(10), book->progress);
+        std::string progress = percent_read_i18n(progress_percent(book->progress));
+        draw_text(tx, y + S(62), g_font_small, DGRAY, tr(book_has_native_progress(*book) ? "PocketBook progress" : "Book progress"));
+        draw_text(tx, y + S(85), g_font_body, BLACK, progress.c_str());
+        draw_progress_bar(tx + S(115), y + S(94), max_tw - S(115), S(10), book->progress);
+
+        std::string tracked = std::string(tr("Tracked time")) + ": " + format_duration_i18n(book->total_seconds);
+        tracked = truncate_to_width(tracked, max_tw);
+        draw_text(tx, y + S(117), g_font_small, DGRAY, tracked.c_str());
+
+        const char *note = (book->imported_native && book->total_seconds == 0) ? tr("Native progress, no tracked time yet") : tr("Time source: Reading Stats");
+        std::string note_text = truncate_to_width(note, max_tw);
+        draw_text(tx, y + S(138), g_font_small, DGRAY, note_text.c_str());
     } else {
         FillArea(x, y, cover_w, cover_h, LGRAY);
         DrawRect(x, y, cover_w, cover_h, DGRAY);
@@ -309,7 +343,7 @@ static void draw_dashboard_page() {
 
     int y = S(64);
     draw_current_book(book, y);
-    y += S(200);
+    y += S(214);
 
     DrawLine(S(30), y, ScreenWidth() - S(30), y, LGRAY);
     y += S(22);
@@ -332,7 +366,7 @@ static void draw_dashboard_page() {
     int bx = S(34);
     int bw = ScreenWidth() - S(68);
     draw_text(bx, y, g_font_title, BLACK, pctbuf);
-    draw_text(bx + S(88), y + S(6), g_font_small, DGRAY, tr("of your library is complete"));
+    draw_text(bx + S(88), y + S(6), g_font_small, DGRAY, tr("of known books are complete"));
     draw_progress_bar(bx, y + S(48), bw, S(12), total > 0 ? (float)finished / (float)total : 0.0f);
     y += S(86);
 
@@ -387,55 +421,94 @@ static void draw_activity_page() {
     }
 }
 
+static void draw_book_row(const BookTotal &book, int x, int y, int cover_w, int cover_h, int max_y) {
+    if (y + cover_h > max_y) return;
+    ibitmap *cover = metadata_cover(book.path, cover_w, cover_h);
+    if (cover) DrawBitmap(x, y, cover);
+    else {
+        FillArea(x, y, cover_w, cover_h, LGRAY);
+        DrawRect(x, y, cover_w, cover_h, DGRAY);
+    }
+
+    int tx = x + cover_w + S(18);
+    int tw = ScreenWidth() - tx - S(32);
+    std::string title = book.title.empty() ? tr("(untitled)") : book.title;
+    title = truncate_to_width(title, tw);
+    draw_text(tx, y + S(0), g_font_body, BLACK, title.c_str());
+
+    std::string progress = percent_read_i18n(progress_percent(book.progress));
+    std::string sub = progress + " · " + format_duration_i18n(book.total_seconds);
+    sub = truncate_to_width(sub, tw);
+    draw_text(tx, y + S(24), g_font_small, DGRAY, sub.c_str());
+
+    std::string source;
+    if (book.imported_native && book.total_seconds == 0) source = tr("Started before Reading Stats");
+    else if (book.session_count > 0) source = std::string(tr("Tracked")) + " · " + sessions_short_i18n(book.session_count);
+    else source = tr("Progress source: PocketBook");
+    source = truncate_to_width(source, tw);
+    draw_text(tx, y + S(43), g_font_small, DGRAY, source.c_str());
+
+    draw_progress_bar(tx, y + S(61), tw, S(7), book.progress);
+}
+
 static void draw_library_page() {
     draw_header();
     if (!ensure_db_open()) return;
 
     OverallStats overall = db_get_overall_stats();
-    std::vector<BookTotal> books = db_get_book_totals(5);
+    std::vector<BookTotal> books = db_get_book_totals(40);
+
+    int in_progress_count = count_in_progress(books);
+    int tracked_count = count_tracked_books(books);
 
     int y = S(64);
     draw_section_label(tr("Library"), y);
     y += S(42);
 
-    draw_metric_cell(0, 3, y, int_text(overall.distinct_books), tr("Books tracked"));
-    draw_metric_cell(1, 3, y, int_text(overall.finished_books), tr("Books Finished"));
-    draw_metric_cell(2, 3, y, sessions_count_i18n(overall.total_sessions), tr("Sessions"));
-    y += S(100);
-
-    draw_section_label(tr("Recent Books"), y);
-    y += S(42);
+    draw_metric_cell(0, 3, y, int_text(in_progress_count), tr("In progress"));
+    draw_metric_cell(1, 3, y, int_text(overall.finished_books), tr("Finished"));
+    draw_metric_cell(2, 3, y, int_text(tracked_count), tr("Tracked books"));
+    y += S(92);
 
     if (books.empty()) {
         draw_centered(tr("No reading data yet."), y + S(30), g_font_body, DGRAY);
         return;
     }
 
-    int cover_w = S(44);
-    int cover_h = S(62);
+    int cover_w = S(38);
+    int cover_h = S(54);
     int x = S(32);
     int max_y = ScreenHeight() - S(52);
 
-    for (size_t i = 0; i < books.size(); i++) {
+    draw_section_label(tr("In progress"), y);
+    y += S(34);
+    int shown = 0;
+    for (size_t i = 0; i < books.size() && shown < 3; i++) {
+        if (!book_in_progress(books[i])) continue;
         if (y + cover_h > max_y) break;
-        ibitmap *cover = metadata_cover(books[i].path, cover_w, cover_h);
-        if (cover) DrawBitmap(x, y, cover);
-        else {
-            FillArea(x, y, cover_w, cover_h, LGRAY);
-            DrawRect(x, y, cover_w, cover_h, DGRAY);
+        draw_book_row(books[i], x, y, cover_w, cover_h, max_y);
+        y += cover_h + S(14);
+        shown++;
+    }
+    if (shown == 0) {
+        draw_text(x, y, g_font_small, DGRAY, tr("No books yet"));
+        y += S(32);
+    }
+
+    if (y + S(112) < max_y) {
+        draw_section_label(tr("Recently tracked"), y);
+        y += S(34);
+        shown = 0;
+        for (size_t i = 0; i < books.size() && shown < 2; i++) {
+            if (books[i].session_count <= 0 && books[i].total_seconds <= 0) continue;
+            if (y + cover_h > max_y) break;
+            draw_book_row(books[i], x, y, cover_w, cover_h, max_y);
+            y += cover_h + S(14);
+            shown++;
         }
-
-        int tx = x + cover_w + S(18);
-        int tw = ScreenWidth() - tx - S(32);
-        std::string title = books[i].title.empty() ? tr("(untitled)") : books[i].title;
-        title = truncate_to_width(title, tw);
-        draw_text(tx, y + S(0), g_font_body, BLACK, title.c_str());
-
-        std::string sub = format_duration_i18n(books[i].total_seconds) + " · " + sessions_short_i18n(books[i].session_count);
-        sub = truncate_to_width(sub, tw);
-        draw_text(tx, y + S(28), g_font_small, DGRAY, sub.c_str());
-        draw_progress_bar(tx, y + S(50), tw, S(8), books[i].progress);
-        y += cover_h + S(16);
+        if (shown == 0) {
+            draw_text(x, y, g_font_small, DGRAY, tr("No reading data yet."));
+        }
     }
 }
 
