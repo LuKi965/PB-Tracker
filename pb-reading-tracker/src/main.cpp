@@ -372,10 +372,11 @@ static void draw_dashboard_page() {
     draw_header();
     if (!ensure_db_open()) return;
 
-    std::vector<BookTotal> recent = db_get_book_totals(1);
-    BookTotal *book = recent.empty() ? NULL : &recent[0];
+    std::vector<BookTotal> dashboard_books = db_get_book_totals(200);
+    BookTotal *book = dashboard_books.empty() ? NULL : &dashboard_books[0];
     OverallStats overall = db_get_overall_stats();
     StreakInfo streak = db_get_streaks();
+    int tracked_count = count_tracked_books(dashboard_books);
 
     PeriodWindow today = today_window();
     PeriodWindow week = week_window();
@@ -400,25 +401,17 @@ static void draw_dashboard_page() {
     draw_metric_cell(3, 4, y, int_text(streak.current_streak), tr("Day Streak"));
     y += S(98);
 
-    draw_section_label(tr("Reading profile"), y);
+    draw_section_label(tr("Library"), y);
     y += S(42);
 
-    int finished = overall.finished_books;
-    int total = overall.distinct_books;
-    int pct = total > 0 ? (finished * 100 / total) : 0;
-    char pctbuf[32];
-    snprintf(pctbuf, sizeof(pctbuf), "%d%%", pct);
+    draw_metric_cell(0, 3, y, int_text(overall.distinct_books), tr("In library"));
+    draw_metric_cell(1, 3, y, int_text(tracked_count), tr("Tracked"));
+    draw_metric_cell(2, 3, y, int_text(overall.finished_books), tr("Finished"));
+    y += S(92);
 
-    int bx = S(34);
-    int bw = ScreenWidth() - S(68);
-    draw_text(bx, y, g_font_title, BLACK, pctbuf);
-    draw_text(bx + S(88), y + S(6), g_font_small, DGRAY, tr("of known books are complete"));
-    draw_progress_bar(bx, y + S(48), bw, S(12), total > 0 ? (float)finished / (float)total : 0.0f);
-    y += S(86);
-
-    draw_metric_cell(0, 3, y, int_text(finished), tr("Books Finished"));
-    draw_metric_cell(1, 3, y, format_duration_i18n(overall.total_seconds), tr("Total read"));
-    draw_metric_cell(2, 3, y, format_duration_i18n(total_seconds_for_books(month_books)), tr("This Month"));
+    draw_metric_cell(0, 3, y, format_duration_i18n(overall.total_seconds), tr("Total read"));
+    draw_metric_cell(1, 3, y, format_duration_i18n(total_seconds_for_books(month_books)), tr("This Month"));
+    draw_metric_cell(2, 3, y, int_text(overall.total_sessions), tr("Sessions"));
 
     if (!g_daemon_enabled) {
         draw_centered(tr("Safe USB mode: background tracking is off"), ScreenHeight() - S(62), g_font_small, DGRAY);
