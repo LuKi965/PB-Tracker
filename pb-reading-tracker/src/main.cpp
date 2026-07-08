@@ -143,8 +143,10 @@ static std::string int_text(long v) {
 }
 
 static std::string avg_session_text(long total_seconds, int sessions) {
-    if (sessions <= 0) return "0";
-    long minutes = (total_seconds / sessions + 30) / 60;
+    if (sessions <= 0 || total_seconds <= 0) return "0";
+    long avg_seconds = total_seconds / sessions;
+    if (avg_seconds > 0 && avg_seconds < 60) return "<1";
+    long minutes = (avg_seconds + 30) / 60;
     char b[32];
     snprintf(b, sizeof(b), "%ld", minutes);
     return b;
@@ -154,6 +156,18 @@ static int progress_percent(float progress) {
     if (progress < 0.0f) progress = 0.0f;
     if (progress > 1.0f) progress = 1.0f;
     return (int)(progress * 100.0f + 0.5f);
+}
+
+static std::string day_label_i18n(const DayStat &d) {
+    struct tm t;
+    memset(&t, 0, sizeof(t));
+    t.tm_year = d.year - 1900;
+    t.tm_mon = d.month - 1;
+    t.tm_mday = d.day;
+    mktime(&t);
+    char b[32];
+    snprintf(b, sizeof(b), "%s %d", weekday_short_i18n(t.tm_wday), d.day);
+    return b;
 }
 
 static bool book_has_native_progress(const BookTotal &book) {
@@ -305,15 +319,15 @@ static void draw_current_book(const BookTotal *book, int y) {
         std::string progress = percent_read_i18n(progress_percent(book->progress));
         draw_text(tx, y + S(62), g_font_small, DGRAY, tr(book_has_native_progress(*book) ? "PocketBook progress" : "Book progress"));
         draw_text(tx, y + S(85), g_font_body, BLACK, progress.c_str());
-        draw_progress_bar(tx + S(115), y + S(94), max_tw - S(115), S(10), book->progress);
+        draw_progress_bar(tx, y + S(113), max_tw, S(10), book->progress);
 
         std::string tracked = std::string(tr("Tracked time")) + ": " + format_duration_i18n(book->total_seconds);
         tracked = truncate_to_width(tracked, max_tw);
-        draw_text(tx, y + S(117), g_font_small, DGRAY, tracked.c_str());
+        draw_text(tx, y + S(132), g_font_small, DGRAY, tracked.c_str());
 
         const char *note = (book->imported_native && book->total_seconds == 0) ? tr("Native progress, no tracked time yet") : tr("Time source: Reading Stats");
         std::string note_text = truncate_to_width(note, max_tw);
-        draw_text(tx, y + S(138), g_font_small, DGRAY, note_text.c_str());
+        draw_text(tx, y + S(153), g_font_small, DGRAY, note_text.c_str());
     } else {
         FillArea(x, y, cover_w, cover_h, LGRAY);
         DrawRect(x, y, cover_w, cover_h, DGRAY);
@@ -343,7 +357,7 @@ static void draw_dashboard_page() {
 
     int y = S(64);
     draw_current_book(book, y);
-    y += S(214);
+    y += S(232);
 
     DrawLine(S(30), y, ScreenWidth() - S(30), y, LGRAY);
     y += S(22);
@@ -411,7 +425,7 @@ static void draw_activity_page() {
     int limit = std::min((int)days.size(), 9);
     for (int i = 0; i < limit; i++) {
         DayStat d = days[i];
-        std::string label = truncate_to_width(d.label, S(110));
+        std::string label = truncate_to_width(day_label_i18n(d), S(110));
         draw_text(margin, y, g_font_small, DGRAY, label.c_str());
         int bw = (int)((double)max_bar_w * (double)d.total_seconds / (double)max_seconds);
         if (d.total_seconds > 0 && bw < S(6)) bw = S(6);
