@@ -16,6 +16,7 @@ static const int POLL_MS = 15000;
 static const int MIN_SESSION_SECONDS = 5;
 static const int FIRST_SYNC_SECONDS = 10;
 static const int SYNC_INTERVAL_SECONDS = 60;
+static const int MAX_INCREMENT_SECONDS = 120;
 
 static std::string read_first_line(const char *path) {
     FILE *f = fopen(path, "r");
@@ -28,6 +29,12 @@ static std::string read_first_line(const char *path) {
     while (!s.empty() && (s[s.length() - 1] == '\n' || s[s.length() - 1] == '\r' || s[s.length() - 1] == ' '))
         s.erase(s.length() - 1);
     return s;
+}
+
+static long capped_increment(long seconds) {
+    if (seconds <= 0) return 0;
+    if (seconds > MAX_INCREMENT_SECONDS) return MAX_INCREMENT_SECONDS;
+    return seconds;
 }
 
 static bool looks_like_book(const std::string &path) {
@@ -151,31 +158,37 @@ struct ActiveSession {
     BookMeta meta;
     time_t start_time;
     time_t last_sync_time;
-    ActiveSession() : active(false), saved_once(false), start_time(0), last_sync_time(0) {}
+    long tracked_seconds;
+    ActiveSession() : active(false), saved_once(false), start_time(0), last_sync_time(0), tracked_seconds(0) {}
 };
 
 static ActiveSession g_session;
 
 static void close_session(time_t end_time) {
     if (!g_session.active) return;
-    long total_duration = (long)(end_time - g_session.start_time);
-    long inc_duration = (long)(end_time - g_session.last_sync_time);
+    long wall_total = (long)(end_time - g_session.start_time);
+    long wall_inc = (long)(end_time - g_session.last_sync_time);
 
-    if (total_duration >= MIN_SESSION_SECONDS) {
+    if (wall_total >= MIN_SESSION_SECONDS) {
+        long inc_duration = capped_increment(wall_inc);
         if (inc_duration <= 0) {
             if (g_session.saved_once) {
-                db_log("close_session: already saved '%s' total=%ld inc=%ld", g_session.path.c_str(), total_duration, inc_duration);
+                db_log("close_session: already saved '%s' wall_total=%ld tracked_total=%ld inc=%ld", g_session.path.c_str(), wall_total, g_session.tracked_seconds, inc_duration);
             } else {
-                inc_duration = total_duration;
-                bool ok = db_update_active_session(g_session.meta, g_session.start_time, end_time, inc_duration);
-                db_log("close_session: %s '%s' total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), total_duration, inc_duration);
+                inc_duration = capped_increment(wall_total);
+                long tracked_total = inc_duration;
+                time_t tracked_end = g_session.start_time + tracked_total;
+                bool ok = db_update_active_session(g_session.meta, g_session.start_time, tracked_end, inc_duration);
+                db_log("close_session: %s '%s' wall_total=%ld tracked_total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), wall_total, tracked_total, inc_duration);
             }
         } else {
-            bool ok = db_update_active_session(g_session.meta, g_session.start_time, end_time, inc_duration);
-            db_log("close_session: %s '%s' total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), total_duration, inc_duration);
+            long tracked_total = g_session.tracked_seconds + inc_duration;
+            time_t tracked_end = g_session.start_time + tracked_total;
+            bool ok = db_update_active_session(g_session.meta, g_session.start_time, tracked_end, inc_duration);
+            db_log("close_session: %s '%s' wall_total=%ld tracked_total=%ld inc=%ld", ok ? "saved" : "FAILED", g_session.path.c_str(), wall_total, tracked_total, inc_duration);
         }
     } else {
-        db_log("close_session: ignored short session '%s' duration=%ld", g_session.path.c_str(), total_duration);
+        db_log("close_session: ignored short session '%s' duration=%ld", g_session.path.c_str(), wall_total);
     }
     g_session = ActiveSession();
 }
@@ -187,6 +200,7 @@ static void open_session(const std::string &path, time_t start_time) {
     g_session.meta = g_daemon_mode ? metadata_read_basic(path) : metadata_read(path);
     g_session.start_time = start_time;
     g_session.last_sync_time = start_time;
+    g_session.tracked_seconds = 0;
     db_log("open_session: '%s' title='%s'", path.c_str(), g_session.meta.title.c_str());
 }
 
@@ -210,13 +224,17 @@ void tracker_poll() {
         return;
     }
 
-    long inc_duration = (long)(now - g_session.last_sync_time);
-    long total_duration = (long)(now - g_session.start_time);
+    long wall_inc = (long)(now - g_session.last_sync_time);
+    long wall_total = (long)(now - g_session.start_time);
     int threshold = g_session.saved_once ? SYNC_INTERVAL_SECONDS : FIRST_SYNC_SECONDS;
-    if (total_duration >= MIN_SESSION_SECONDS && inc_duration >= threshold) {
-        bool ok = db_update_active_session(g_session.meta, g_session.start_time, now, inc_duration);
+    if (wall_total >= MIN_SESSION_SECONDS && wall_inc >= threshold) {
+        long inc_duration = capped_increment(wall_inc);
+        long tracked_total = g_session.tracked_seconds + inc_duration;
+        time_t tracked_end = g_session.start_time + tracked_total;
+        bool ok = db_update_active_session(g_session.meta, g_session.start_time, tracked_end, inc_duration);
         if (ok) {
             g_session.saved_once = true;
+            g_session.tracked_seconds = tracked_total;
             g_session.last_sync_time = now;
         } else {
             db_log("tracker_poll: periodic sync FAILED for '%s' inc=%ld", g_session.path.c_str(), inc_duration);
