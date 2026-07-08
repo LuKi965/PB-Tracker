@@ -170,6 +170,34 @@ static std::string day_label_i18n(const DayStat &d) {
     return b;
 }
 
+static std::string display_title(const std::string &raw) {
+    std::string title = raw.empty() ? tr("(untitled)") : raw;
+
+    // Hide common series/order prefixes coming from filenames or metadata,
+    // e.g. "0. Zabójczyni" -> "Zabójczyni". This is display-only; the DB
+    // keeps the original title/path intact.
+    size_t start = 0;
+    while (start < title.size() && (title[start] == ' ' || title[start] == '\t')) start++;
+
+    size_t i = start;
+    while (i < title.size() && title[i] >= '0' && title[i] <= '9') i++;
+
+    if (i > start && i < title.size() && title[i] == '.') {
+        size_t j = i + 1;
+        while (j < title.size() && (title[j] == ' ' || title[j] == '\t')) j++;
+        if (j < title.size()) return title.substr(j);
+    }
+
+    return title;
+}
+
+static bool path_already_shown(const std::vector<std::string> &paths, const std::string &path) {
+    for (size_t i = 0; i < paths.size(); i++) {
+        if (paths[i] == path) return true;
+    }
+    return false;
+}
+
 static bool book_has_native_progress(const BookTotal &book) {
     return book.native_last_seen > 0 || book.native_npage > 0 || book.imported_native || book.progress > 0.0f || book.finished;
 }
@@ -309,7 +337,7 @@ static void draw_current_book(const BookTotal *book, int y) {
             draw_centered_in(x, y + cover_h / 2 - S(10), cover_w, g_font_small, DGRAY, "PB");
         }
 
-        std::string title = book->title.empty() ? tr("(untitled)") : book->title;
+        std::string title = display_title(book->title);
         std::string author = book->author;
         title = truncate_to_width(title, max_tw);
         author = truncate_to_width(author, max_tw);
@@ -446,7 +474,7 @@ static void draw_book_row(const BookTotal &book, int x, int y, int cover_w, int 
 
     int tx = x + cover_w + S(18);
     int tw = ScreenWidth() - tx - S(32);
-    std::string title = book.title.empty() ? tr("(untitled)") : book.title;
+    std::string title = display_title(book.title);
     title = truncate_to_width(title, tw);
     draw_text(tx, y + S(0), g_font_body, BLACK, title.c_str());
 
@@ -493,6 +521,7 @@ static void draw_library_page() {
     int cover_h = S(54);
     int x = S(32);
     int max_y = ScreenHeight() - S(52);
+    std::vector<std::string> shown_paths;
 
     draw_section_label(tr("In progress"), y);
     y += S(34);
@@ -501,6 +530,7 @@ static void draw_library_page() {
         if (!book_in_progress(books[i])) continue;
         if (y + cover_h > max_y) break;
         draw_book_row(books[i], x, y, cover_w, cover_h, max_y);
+        shown_paths.push_back(books[i].path);
         y += cover_h + S(14);
         shown++;
     }
@@ -510,18 +540,17 @@ static void draw_library_page() {
     }
 
     if (y + S(112) < max_y) {
-        draw_section_label(tr("Recently tracked"), y);
-        y += S(34);
+        int section_y = y;
+        int rows_y = y + S(34);
         shown = 0;
         for (size_t i = 0; i < books.size() && shown < 2; i++) {
             if (books[i].session_count <= 0 && books[i].total_seconds <= 0) continue;
-            if (y + cover_h > max_y) break;
-            draw_book_row(books[i], x, y, cover_w, cover_h, max_y);
-            y += cover_h + S(14);
+            if (path_already_shown(shown_paths, books[i].path)) continue;
+            if (rows_y + cover_h > max_y) break;
+            if (shown == 0) draw_section_label(tr("Recently tracked"), section_y);
+            draw_book_row(books[i], x, rows_y, cover_w, cover_h, max_y);
+            rows_y += cover_h + S(14);
             shown++;
-        }
-        if (shown == 0) {
-            draw_text(x, y, g_font_small, DGRAY, tr("No reading data yet."));
         }
     }
 }
