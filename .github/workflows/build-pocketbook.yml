@@ -155,4 +155,5 @@ jobs:
           path: |
             dist/*.app
             dist/*.bmp
+            docs/install-pocketbook.txt
           if-no-files-found: error
