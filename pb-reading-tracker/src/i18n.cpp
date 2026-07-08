@@ -216,6 +216,9 @@ const char *weekday_short_i18n(int weekday) {
 }
 
 std::string format_duration_i18n(long seconds) {
+    if (seconds <= 0) return "0 min";
+    if (seconds < 60) return "<1 min";
+
     long minutes = seconds / 60;
     if (minutes < 60) {
         char buf[32];
