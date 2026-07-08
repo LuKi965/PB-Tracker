@@ -13,50 +13,16 @@ static std::string to_string_impl(int v) { char b[32]; snprintf(b, sizeof(b), "%
 #include <algorithm>
 #include <set>
 
-// Helper to extract native reading progress from PocketBook's system DB
+// Helper to extract native reading progress from PocketBook's system DB.
+// This app must only read PocketBook's DB. All writes go to reading_stats.db.
 struct NativeProgress {
+    bool found = false;
     float progress = 0.0f;
+    int cpage = 0;
+    int npage = 0;
+    int completed = 0;
     bool finished = false;
 };
-
-static NativeProgress get_native_progress(const std::string& path) {
-    NativeProgress p;
-    sqlite3 *ex_db = NULL;
-    // On device, explorer-3.db is mounted at /mnt/ext1 or /system. Fallbacks cover both.
-    if (sqlite3_open_v2("/mnt/ext1/system/explorer-3/explorer-3.db", &ex_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK) {
-        if (sqlite3_open_v2("/system/explorer-3/explorer-3.db", &ex_db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK) {
-            return p; // failed to open system db
-        }
-    }
-    
-    const char *sql = 
-        "SELECT bs.cpage, bs.npage, bs.completed FROM files f "
-        "JOIN folders fd ON f.folder_id = fd.id "
-        "JOIN books_settings bs ON bs.bookid = f.book_id "
-        "WHERE (fd.name || '/' || f.filename) = ? LIMIT 1;";
-        
-    sqlite3_stmt *stmt = NULL;
-    if (sqlite3_prepare_v2(ex_db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
-        if (sqlite3_step(stmt) == SQLITE_ROW) {
-            int cpage = sqlite3_column_int(stmt, 0);
-            int npage = sqlite3_column_int(stmt, 1);
-            int completed = sqlite3_column_int(stmt, 2);
-            
-            if (npage > 0) {
-                p.progress = (float)cpage / (float)npage;
-            } else if (completed == 1) {
-                p.progress = 1.0f;
-            }
-            if (p.progress > 1.0f) p.progress = 1.0f;
-            
-            p.finished = (completed == 1) || (npage > 0 && cpage >= npage);
-        }
-        sqlite3_finalize(stmt);
-    }
-    sqlite3_close(ex_db);
-    return p;
-}
 
 static sqlite3 *g_db = NULL;
 
@@ -67,6 +33,182 @@ static const char *MONTH_NAMES[] = {
 static const char *WEEKDAY_NAMES[] = {
     "Sun","Mon","Tue","Wed","Thu","Fri","Sat" // matches strftime('%w'): 0=Sunday
 };
+
+static bool open_native_progress_db(sqlite3 **out) {
+    *out = NULL;
+    if (sqlite3_open_v2("/mnt/ext1/system/explorer-3/explorer-3.db", out, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK) {
+        return true;
+    }
+    if (*out) { sqlite3_close(*out); *out = NULL; }
+    if (sqlite3_open_v2("/system/explorer-3/explorer-3.db", out, SQLITE_OPEN_READONLY, NULL) == SQLITE_OK) {
+        return true;
+    }
+    if (*out) { sqlite3_close(*out); *out = NULL; }
+    return false;
+}
+
+static NativeProgress native_progress_from_values(int cpage, int npage, int completed) {
+    NativeProgress p;
+    p.found = true;
+    p.cpage = cpage;
+    p.npage = npage;
+    p.completed = completed;
+    if (npage > 0) {
+        p.progress = (float)cpage / (float)npage;
+    } else if (completed == 1) {
+        p.progress = 1.0f;
+    }
+    if (p.progress < 0.0f) p.progress = 0.0f;
+    if (p.progress > 1.0f) p.progress = 1.0f;
+    p.finished = (completed == 1) || (npage > 0 && cpage >= npage);
+    return p;
+}
+
+static NativeProgress get_native_progress(const std::string& path) {
+    NativeProgress p;
+    sqlite3 *ex_db = NULL;
+    if (!open_native_progress_db(&ex_db)) return p;
+
+    const char *sql =
+        "SELECT bs.cpage, bs.npage, bs.completed FROM files f "
+        "JOIN folders fd ON f.folder_id = fd.id "
+        "JOIN books_settings bs ON bs.bookid = f.book_id "
+        "WHERE (fd.name || '/' || f.filename) = ? LIMIT 1;";
+
+    sqlite3_stmt *stmt = NULL;
+    if (sqlite3_prepare_v2(ex_db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            p = native_progress_from_values(sqlite3_column_int(stmt, 0), sqlite3_column_int(stmt, 1), sqlite3_column_int(stmt, 2));
+        }
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_close(ex_db);
+    return p;
+}
+
+static std::string title_from_path(const std::string &path) {
+    size_t slash = path.find_last_of('/');
+    std::string name = slash == std::string::npos ? path : path.substr(slash + 1);
+    size_t dot = name.find_last_of('.');
+    if (dot != std::string::npos && dot > 0) name = name.substr(0, dot);
+    for (size_t i = 0; i < name.size(); i++) {
+        if (name[i] == '_' || name[i] == '-') name[i] = ' ';
+    }
+    return name;
+}
+
+static void exec_ignore_error(const char *sql) {
+    char *err = NULL;
+    sqlite3_exec(g_db, sql, NULL, NULL, &err);
+    if (err) sqlite3_free(err);
+}
+
+static void migrate_schema() {
+    exec_ignore_error("ALTER TABLE books ADD COLUMN native_progress REAL DEFAULT 0;");
+    exec_ignore_error("ALTER TABLE books ADD COLUMN native_cpage INTEGER DEFAULT 0;");
+    exec_ignore_error("ALTER TABLE books ADD COLUMN native_npage INTEGER DEFAULT 0;");
+    exec_ignore_error("ALTER TABLE books ADD COLUMN native_completed INTEGER DEFAULT 0;");
+    exec_ignore_error("ALTER TABLE books ADD COLUMN imported_native INTEGER DEFAULT 0;");
+    exec_ignore_error("ALTER TABLE books ADD COLUMN native_last_seen INTEGER DEFAULT 0;");
+    exec_ignore_error(
+        "CREATE TABLE IF NOT EXISTS progress_snapshots ("
+        "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  path TEXT NOT NULL,"
+        "  timestamp INTEGER NOT NULL,"
+        "  progress REAL NOT NULL,"
+        "  cpage INTEGER DEFAULT 0,"
+        "  npage INTEGER DEFAULT 0,"
+        "  completed INTEGER DEFAULT 0"
+        ");");
+}
+
+static bool latest_snapshot_differs(const std::string &path, const NativeProgress &np) {
+    sqlite3_stmt *stmt = NULL;
+    bool differs = true;
+    const char *sql = "SELECT progress, cpage, npage, completed FROM progress_snapshots WHERE path=? ORDER BY timestamp DESC LIMIT 1;";
+    if (sqlite3_prepare_v2(g_db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            double prev = sqlite3_column_double(stmt, 0);
+            double diff = (double)np.progress - prev;
+            if (diff < 0) diff = -diff;
+            int cpage = sqlite3_column_int(stmt, 1);
+            int npage = sqlite3_column_int(stmt, 2);
+            int completed = sqlite3_column_int(stmt, 3);
+            differs = diff > 0.0001 || cpage != np.cpage || npage != np.npage || completed != np.completed;
+        }
+        sqlite3_finalize(stmt);
+    }
+    return differs;
+}
+
+static void insert_progress_snapshot(const std::string &path, const NativeProgress &np, time_t now) {
+    if (!np.found) return;
+    if (!latest_snapshot_differs(path, np)) return;
+
+    sqlite3_stmt *stmt = NULL;
+    const char *sql = "INSERT INTO progress_snapshots (path, timestamp, progress, cpage, npage, completed) VALUES (?, ?, ?, ?, ?, ?);";
+    if (sqlite3_prepare_v2(g_db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 2, (sqlite3_int64)now);
+        sqlite3_bind_double(stmt, 3, np.progress);
+        sqlite3_bind_int(stmt, 4, np.cpage);
+        sqlite3_bind_int(stmt, 5, np.npage);
+        sqlite3_bind_int(stmt, 6, np.completed);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+}
+
+static void cache_native_progress(const std::string &path, const std::string &title, const NativeProgress &np, time_t now) {
+    if (!np.found) return;
+
+    sqlite3_stmt *stmt = NULL;
+    const char *update_sql =
+        "UPDATE books SET "
+        "native_progress=?, native_cpage=?, native_npage=?, native_completed=?, native_last_seen=?, "
+        "imported_native=CASE WHEN session_count=0 THEN 1 ELSE imported_native END, "
+        "title=CASE WHEN title IS NULL OR title='' THEN ? ELSE title END, "
+        "last_opened=CASE WHEN last_opened=0 THEN ? ELSE last_opened END "
+        "WHERE path=?;";
+    if (sqlite3_prepare_v2(g_db, update_sql, -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_double(stmt, 1, np.progress);
+        sqlite3_bind_int(stmt, 2, np.cpage);
+        sqlite3_bind_int(stmt, 3, np.npage);
+        sqlite3_bind_int(stmt, 4, np.completed);
+        sqlite3_bind_int64(stmt, 5, (sqlite3_int64)now);
+        sqlite3_bind_text(stmt, 6, title.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 7, (sqlite3_int64)now);
+        sqlite3_bind_text(stmt, 8, path.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_step(stmt);
+        int changes = sqlite3_changes(g_db);
+        sqlite3_finalize(stmt);
+        if (changes > 0) {
+            insert_progress_snapshot(path, np, now);
+            return;
+        }
+    }
+
+    const char *insert_sql =
+        "INSERT INTO books (path, title, author, series, genre, year, size_bytes, first_opened, last_opened, "
+        "total_seconds, session_count, native_progress, native_cpage, native_npage, native_completed, imported_native, native_last_seen) "
+        "VALUES (?, ?, '', '', '', 0, 0, ?, ?, 0, 0, ?, ?, ?, ?, 1, ?);";
+    if (sqlite3_prepare_v2(g_db, insert_sql, -1, &stmt, NULL) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, title.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(stmt, 3, (sqlite3_int64)now);
+        sqlite3_bind_int64(stmt, 4, (sqlite3_int64)now);
+        sqlite3_bind_double(stmt, 5, np.progress);
+        sqlite3_bind_int(stmt, 6, np.cpage);
+        sqlite3_bind_int(stmt, 7, np.npage);
+        sqlite3_bind_int(stmt, 8, np.completed);
+        sqlite3_bind_int64(stmt, 9, (sqlite3_int64)now);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+        insert_progress_snapshot(path, np, now);
+    }
+}
 
 // Local-time midnight-ish ordinal for a calendar day, used purely to
 // compare "is this the next consecutive day" for streak counting.
@@ -103,6 +245,44 @@ static const char *SCHEMA =
     "  duration_seconds INTEGER NOT NULL"
     ");";
 
+int db_import_native_books() {
+    if (!g_db) return 0;
+
+    sqlite3 *ex_db = NULL;
+    if (!open_native_progress_db(&ex_db)) return 0;
+
+    const char *sql =
+        "SELECT (fd.name || '/' || f.filename) AS path, f.filename, bs.cpage, bs.npage, bs.completed "
+        "FROM files f "
+        "JOIN folders fd ON f.folder_id = fd.id "
+        "JOIN books_settings bs ON bs.bookid = f.book_id "
+        "WHERE bs.completed=1 OR (bs.npage > 0 AND bs.cpage > 0);";
+
+    sqlite3_stmt *stmt = NULL;
+    int imported = 0;
+    time_t now = time(NULL);
+    sqlite3_exec(g_db, "BEGIN;", NULL, NULL, NULL);
+
+    if (sqlite3_prepare_v2(ex_db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char *p = sqlite3_column_text(stmt, 0);
+            const unsigned char *fn = sqlite3_column_text(stmt, 1);
+            if (!p) continue;
+            std::string path = reinterpret_cast<const char *>(p);
+            std::string title = fn ? title_from_path(reinterpret_cast<const char *>(fn)) : title_from_path(path);
+            NativeProgress np = native_progress_from_values(sqlite3_column_int(stmt, 2), sqlite3_column_int(stmt, 3), sqlite3_column_int(stmt, 4));
+            if (!np.finished && np.progress <= 0.0f) continue;
+            cache_native_progress(path, title, np, now);
+            imported++;
+        }
+        sqlite3_finalize(stmt);
+    }
+
+    sqlite3_exec(g_db, "COMMIT;", NULL, NULL, NULL);
+    sqlite3_close(ex_db);
+    return imported;
+}
+
 bool db_open(const std::string &db_path) {
     if (g_db) return true;
     if (sqlite3_open(db_path.c_str(), &g_db) != SQLITE_OK) {
@@ -116,9 +296,11 @@ bool db_open(const std::string &db_path) {
         g_db = NULL;
         return false;
     }
+    migrate_schema();
     // Use synchronous=FULL to guarantee that periodic saves survive hard resets
     sqlite3_exec(g_db, "PRAGMA synchronous=FULL;", NULL, NULL, NULL);
     sqlite3_exec(g_db, "PRAGMA journal_mode=TRUNCATE;", NULL, NULL, NULL);
+    db_import_native_books();
     return true;
 }
 
@@ -137,7 +319,7 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
     // 1. Try to update existing session
     sqlite3_stmt *stmt = NULL;
     sqlite3_prepare_v2(g_db,
-        "UPDATE sessions SET end_time=?, duration_seconds=? WHERE path=? AND start_time=?;", 
+        "UPDATE sessions SET end_time=?, duration_seconds=? WHERE path=? AND start_time=?;",
         -1, &stmt, NULL);
     sqlite3_bind_int64(stmt, 1, (sqlite3_int64)end_time);
     sqlite3_bind_int64(stmt, 2, (sqlite3_int64)total_duration);
@@ -150,7 +332,7 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
     if (changes == 0) {
         // Doesn't exist yet, insert it
         sqlite3_prepare_v2(g_db,
-            "INSERT INTO sessions (path, start_time, end_time, duration_seconds) VALUES (?, ?, ?, ?);", 
+            "INSERT INTO sessions (path, start_time, end_time, duration_seconds) VALUES (?, ?, ?, ?);",
             -1, &stmt, NULL);
         sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int64(stmt, 2, (sqlite3_int64)start_time);
@@ -162,7 +344,7 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
 
     // 2. Update books table
     sqlite3_prepare_v2(g_db,
-        "UPDATE books SET last_opened=?, total_seconds=total_seconds+? WHERE path=?;", 
+        "UPDATE books SET last_opened=?, total_seconds=total_seconds+? WHERE path=?;",
         -1, &stmt, NULL);
     sqlite3_bind_int64(stmt, 1, (sqlite3_int64)end_time);
     sqlite3_bind_int64(stmt, 2, (sqlite3_int64)incremental_duration);
@@ -176,7 +358,7 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
         sqlite3_prepare_v2(g_db,
             "INSERT INTO books (path, title, author, series, genre, year, size_bytes, "
             "  first_opened, last_opened, total_seconds, session_count) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1);", 
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1);",
             -1, &stmt, NULL);
         sqlite3_bind_text(stmt, 1, meta.path.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, meta.title.c_str(), -1, SQLITE_TRANSIENT);
@@ -199,8 +381,30 @@ bool db_update_active_session(const BookMeta &meta, time_t start_time, time_t en
         sqlite3_finalize(stmt);
     }
 
+    NativeProgress np = get_native_progress(meta.path);
+    if (np.found) {
+        cache_native_progress(meta.path, meta.title.empty() ? title_from_path(meta.path) : meta.title, np, end_time);
+    }
+
     sqlite3_exec(g_db, "COMMIT;", NULL, NULL, NULL);
     return true;
+}
+
+static void apply_native_progress(BookTotal &bt, float cached_progress, int cached_cpage, int cached_npage, int cached_completed, int imported_native, time_t native_last_seen) {
+    bt.progress = cached_progress;
+    bt.native_cpage = cached_cpage;
+    bt.native_npage = cached_npage;
+    bt.finished = cached_completed == 1 || (cached_npage > 0 && cached_cpage >= cached_npage);
+    bt.imported_native = imported_native != 0;
+    bt.native_last_seen = native_last_seen;
+
+    NativeProgress live = get_native_progress(bt.path);
+    if (live.found) {
+        bt.progress = live.progress;
+        bt.native_cpage = live.cpage;
+        bt.native_npage = live.npage;
+        bt.finished = live.finished;
+    }
 }
 
 std::vector<BookTotal> db_get_book_totals(int limit) {
@@ -208,8 +412,9 @@ std::vector<BookTotal> db_get_book_totals(int limit) {
     if (!g_db) return out;
 
     std::string sql =
-        "SELECT path, title, author, total_seconds, session_count, last_opened "
-        "FROM books ORDER BY last_opened DESC";
+        "SELECT path, title, author, total_seconds, session_count, last_opened, "
+        "native_progress, native_cpage, native_npage, native_completed, imported_native, native_last_seen "
+        "FROM books ORDER BY last_opened DESC, native_last_seen DESC";
     if (limit > 0) sql += " LIMIT " + to_string_impl(limit);
     sql += ";";
 
@@ -227,11 +432,14 @@ std::vector<BookTotal> db_get_book_totals(int limit) {
         bt.total_seconds = (long)sqlite3_column_int64(stmt, 3);
         bt.session_count = sqlite3_column_int(stmt, 4);
         bt.last_read = (time_t)sqlite3_column_int64(stmt, 5);
-        
-        NativeProgress np = get_native_progress(bt.path);
-        bt.progress = np.progress;
-        bt.finished = np.finished;
-        
+        apply_native_progress(bt,
+                              (float)sqlite3_column_double(stmt, 6),
+                              sqlite3_column_int(stmt, 7),
+                              sqlite3_column_int(stmt, 8),
+                              sqlite3_column_int(stmt, 9),
+                              sqlite3_column_int(stmt, 10),
+                              (time_t)sqlite3_column_int64(stmt, 11));
+        if (bt.last_read == 0) bt.last_read = bt.native_last_seen;
         out.push_back(bt);
     }
     sqlite3_finalize(stmt);
@@ -253,17 +461,23 @@ OverallStats db_get_overall_stats() {
         }
         sqlite3_finalize(stmt);
     }
-    
-    // Count how many of our tracked books are natively marked as finished
-    if (sqlite3_prepare_v2(g_db, "SELECT path FROM books;", -1, &stmt, NULL) == SQLITE_OK) {
+
+    if (sqlite3_prepare_v2(g_db, "SELECT path, native_cpage, native_npage, native_completed FROM books;", -1, &stmt, NULL) == SQLITE_OK) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             const unsigned char *p = sqlite3_column_text(stmt, 0);
-            if (p) {
-                std::string path = reinterpret_cast<const char *>(p);
-                if (get_native_progress(path).finished) {
-                    s.finished_books++;
-                }
+            if (!p) continue;
+            std::string path = reinterpret_cast<const char *>(p);
+            NativeProgress live = get_native_progress(path);
+            bool finished = false;
+            if (live.found) {
+                finished = live.finished;
+            } else {
+                int cpage = sqlite3_column_int(stmt, 1);
+                int npage = sqlite3_column_int(stmt, 2);
+                int completed = sqlite3_column_int(stmt, 3);
+                finished = completed == 1 || (npage > 0 && cpage >= npage);
             }
+            if (finished) s.finished_books++;
         }
         sqlite3_finalize(stmt);
     }
@@ -336,10 +550,6 @@ std::vector<BookPeriodEntry> db_get_books_in_period(time_t start, time_t end) {
     std::vector<BookPeriodEntry> out;
     if (!g_db) return out;
 
-    // Joins against `books` for title/author since sessions only
-    // ever store the path -- metadata lives with the book, not the
-    // session, so it stays correct even if a title gets corrected
-    // later (e.g. after a re-scan of the library).
     const char *sql =
         "SELECT s.path, b.title, b.author, SUM(s.duration_seconds), COUNT(*) "
         "FROM sessions s JOIN books b ON b.path = s.path "
@@ -361,11 +571,11 @@ std::vector<BookPeriodEntry> db_get_books_in_period(time_t start, time_t end) {
         e.author = a ? reinterpret_cast<const char *>(a) : "";
         e.total_seconds = (long)sqlite3_column_int64(stmt, 3);
         e.session_count = sqlite3_column_int(stmt, 4);
-        
+
         NativeProgress np = get_native_progress(e.path);
         e.progress = np.progress;
         e.finished = np.finished;
-        
+
         out.push_back(e);
     }
     sqlite3_finalize(stmt);
