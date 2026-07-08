@@ -15,6 +15,10 @@ void db_close();
 // Write debug info to a local log file on the device
 void db_log(const char *fmt, ...);
 
+// Import books that PocketBook already knows as started/finished.
+// Reads PocketBook's native DB read-only and writes only to our DB.
+int db_import_native_books();
+
 // Records a reading session incrementally. `incremental_duration` is the amount
 // of time elapsed since the last time this function was called for this session.
 // This allows the daemon to save reading progress continuously.
@@ -27,8 +31,12 @@ struct BookTotal {
     long total_seconds = 0;
     int session_count = 0;
     float progress = 0.0f;
+    int native_cpage = 0;
+    int native_npage = 0;
     bool finished = false;
+    bool imported_native = false;
     time_t last_read = 0;
+    time_t native_last_seen = 0;
 };
 
 // Returns per-book totals, most-recently-read first. `limit` <= 0
