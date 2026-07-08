@@ -31,14 +31,14 @@
 #define KEY_NEXT2 KEY_NEXT
 #endif
 
-// Observed on PocketBook InkPad Color 3 debug logs:
-// type=25/key=25 => physical next-page press
-// type=25/key=24 => physical previous-page press
-// type=26        => release event, ignored to avoid double handling
+// Confirmed on PocketBook InkPad Color 3 debug logs:
+// type=25/key=24 => left physical page key
+// type=25/key=25 => right physical page key
+// type=26        => release event, ignored
 static const int IPC3_KEY_DOWN = 25;
 static const int IPC3_KEY_UP = 26;
-static const int IPC3_KEY_NEXT = 25;
 static const int IPC3_KEY_PREV = 24;
+static const int IPC3_KEY_NEXT = 25;
 
 static const char *DB_PATH = FLASHDIR "/system/pbreadstats/reading_stats.db";
 static const char *CFG_PATH = FLASHDIR "/system/pbreadstats/config.cfg";
@@ -60,7 +60,7 @@ static int S(int px) { return (int)(px * g_scale); }
 enum PageKind {
     PAGE_DASHBOARD = 0,
     PAGE_ACTIVITY = 1,
-    PAGE_HISTORY = 2,
+    PAGE_LIBRARY = 2,
     PAGE_COUNT = 3
 };
 
@@ -127,6 +127,12 @@ static std::string truncate_to_width(std::string text, int max_width) {
 static long total_seconds_for_books(const std::vector<BookPeriodEntry> &books) {
     long total = 0;
     for (size_t i = 0; i < books.size(); i++) total += books[i].total_seconds;
+    return total;
+}
+
+static int total_sessions_for_books(const std::vector<BookPeriodEntry> &books) {
+    int total = 0;
+    for (size_t i = 0; i < books.size(); i++) total += books[i].session_count;
     return total;
 }
 
@@ -237,7 +243,7 @@ static void draw_header() {
 }
 
 static void draw_footer() {
-    const char *name = g_page_index == PAGE_DASHBOARD ? tr("Overview") : (g_page_index == PAGE_ACTIVITY ? tr("Activity") : tr("History"));
+    const char *name = g_page_index == PAGE_DASHBOARD ? tr("Overview") : (g_page_index == PAGE_ACTIVITY ? tr("Activity") : tr("Library"));
     char b[96];
     snprintf(b, sizeof(b), "%s  ·  %d/%d", name, g_page_index + 1, PAGE_COUNT);
     DrawLine(S(36), ScreenHeight() - S(34), ScreenWidth() - S(36), ScreenHeight() - S(34), LGRAY);
@@ -284,7 +290,6 @@ static void draw_current_book(const BookTotal *book, int y) {
 
 static void draw_dashboard_page() {
     draw_header();
-
     if (!ensure_db_open()) return;
 
     std::vector<BookTotal> recent = db_get_book_totals(1);
@@ -315,7 +320,7 @@ static void draw_dashboard_page() {
     draw_metric_cell(3, 4, y, int_text(streak.current_streak), tr("Day Streak"));
     y += S(98);
 
-    draw_section_label(tr("Entire Library"), y);
+    draw_section_label(tr("Reading profile"), y);
     y += S(42);
 
     int finished = overall.finished_books;
@@ -351,41 +356,63 @@ static void draw_activity_page() {
     int row_h = S(48);
     int max_bar_w = ScreenWidth() - S(220);
     long max_seconds = 1;
-    for (size_t i = 0; i < days.size(); i++) if (days[i].total_seconds > max_seconds) max_seconds = days[i].total_seconds;
+    long total = 0;
+    int active_days = 0;
+    for (size_t i = 0; i < days.size(); i++) {
+        if (days[i].total_seconds > max_seconds) max_seconds = days[i].total_seconds;
+        if (days[i].total_seconds > 0) active_days++;
+        total += days[i].total_seconds;
+    }
 
     if (days.empty()) {
         draw_centered(tr("No reading data yet."), y + S(30), g_font_body, DGRAY);
         return;
     }
 
-    int limit = std::min((int)days.size(), 10);
+    draw_metric_cell(0, 3, y, format_duration_i18n(total), tr("Last 14 days"));
+    draw_metric_cell(1, 3, y, int_text(active_days), tr("Reading days"));
+    draw_metric_cell(2, 3, y, format_duration_i18n(max_seconds), tr("Best day"));
+    y += S(108);
+
+    int limit = std::min((int)days.size(), 9);
     for (int i = 0; i < limit; i++) {
         DayStat d = days[i];
         std::string label = truncate_to_width(d.label, S(110));
         draw_text(margin, y, g_font_small, DGRAY, label.c_str());
         int bw = (int)((double)max_bar_w * (double)d.total_seconds / (double)max_seconds);
-        if (bw < S(6)) bw = S(6);
+        if (d.total_seconds > 0 && bw < S(6)) bw = S(6);
         FillArea(margin + S(120), y + S(5), bw, S(16), BLACK);
         draw_right(format_duration_i18n(d.total_seconds).c_str(), ScreenWidth() - margin, y, g_font_small, BLACK);
         y += row_h;
     }
 }
 
-static void draw_history_page() {
+static void draw_library_page() {
     draw_header();
     if (!ensure_db_open()) return;
 
-    draw_section_label(tr("Recent Books"), S(64));
-    std::vector<BookTotal> books = db_get_book_totals(6);
-    int y = S(108);
+    OverallStats overall = db_get_overall_stats();
+    std::vector<BookTotal> books = db_get_book_totals(5);
+
+    int y = S(64);
+    draw_section_label(tr("Library"), y);
+    y += S(42);
+
+    draw_metric_cell(0, 3, y, int_text(overall.distinct_books), tr("Books tracked"));
+    draw_metric_cell(1, 3, y, int_text(overall.finished_books), tr("Books Finished"));
+    draw_metric_cell(2, 3, y, sessions_count_i18n(overall.total_sessions), tr("Sessions"));
+    y += S(100);
+
+    draw_section_label(tr("Recent Books"), y);
+    y += S(42);
 
     if (books.empty()) {
         draw_centered(tr("No reading data yet."), y + S(30), g_font_body, DGRAY);
         return;
     }
 
-    int cover_w = S(50);
-    int cover_h = S(70);
+    int cover_w = S(44);
+    int cover_h = S(62);
     int x = S(32);
     int max_y = ScreenHeight() - S(52);
 
@@ -402,13 +429,13 @@ static void draw_history_page() {
         int tw = ScreenWidth() - tx - S(32);
         std::string title = books[i].title.empty() ? tr("(untitled)") : books[i].title;
         title = truncate_to_width(title, tw);
-        draw_text(tx, y + S(2), g_font_body, BLACK, title.c_str());
+        draw_text(tx, y + S(0), g_font_body, BLACK, title.c_str());
 
         std::string sub = format_duration_i18n(books[i].total_seconds) + " · " + sessions_short_i18n(books[i].session_count);
         sub = truncate_to_width(sub, tw);
-        draw_text(tx, y + S(32), g_font_small, DGRAY, sub.c_str());
-        draw_progress_bar(tx, y + S(58), tw, S(8), books[i].progress);
-        y += cover_h + S(18);
+        draw_text(tx, y + S(28), g_font_small, DGRAY, sub.c_str());
+        draw_progress_bar(tx, y + S(50), tw, S(8), books[i].progress);
+        y += cover_h + S(16);
     }
 }
 
@@ -419,7 +446,7 @@ static void draw_page() {
 
     if (g_page_index == PAGE_DASHBOARD) draw_dashboard_page();
     else if (g_page_index == PAGE_ACTIVITY) draw_activity_page();
-    else draw_history_page();
+    else draw_library_page();
 
     draw_footer();
     FullUpdate();
