@@ -40,7 +40,7 @@ static bool looks_like_book(const std::string &path) {
         if (lower[i] >= 'A' && lower[i] <= 'Z') lower[i] += 32;
     for (int i = 0; exts[i]; i++) {
         size_t elen = strlen(exts[i]);
-        if (lower.size() >= elen && lower.compare(lower.size() - elen, elen) == 0)
+        if (lower.size() >= elen && lower.compare(lower.size() - elen, elen, exts[i]) == 0)
             return true;
     }
     return false;
