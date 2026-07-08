@@ -28,6 +28,7 @@ const Translation TRANSLATIONS[] = {
     {"Calendar", "Kalendarz"},
     {"Books", "Książki"},
     {"Library", "Biblioteka"},
+    {"In library", "W bibliotece"},
     {"Reading Life", "Statystyki czytania"},
     {"Hours", "Godziny"},
     {"Total Hours Read", "Łączny czas czytania"},
