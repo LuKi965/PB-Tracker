@@ -5,10 +5,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${ROOT_DIR}/build/pocketbook"
 DIST_DIR="${ROOT_DIR}/dist"
 APP_NAME="ReadingStats.app"
-APP_ICON_NAME="ReadingStats.app.bmp"
 ICON_NAME="ReadingStats.bmp"
 FOCUSED_ICON_NAME="ReadingStats_f.bmp"
-LEGACY_SOURCE_ICON_NAME="Reading Stats.app.bmp"
+APP_ICON_NAME="ReadingStats.app.bmp"
 
 if [[ -z "${POCKETBOOK_TOOLCHAIN:-}" ]]; then
   echo "Set POCKETBOOK_TOOLCHAIN to your PocketBook CMake toolchain file." >&2
@@ -27,31 +26,7 @@ cmake --build "${BUILD_DIR}"
 mkdir -p "${DIST_DIR}"
 cp "${BUILD_DIR}/pbreadstats" "${DIST_DIR}/${APP_NAME}"
 
-if [[ -f "${ROOT_DIR}/assets/${ICON_NAME}" ]]; then
-  cp "${ROOT_DIR}/assets/${ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${ICON_NAME}.base64" ]]; then
-  base64 -d "${ROOT_DIR}/assets/${ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${APP_ICON_NAME}" ]]; then
-  cp "${ROOT_DIR}/assets/${APP_ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${APP_ICON_NAME}.base64" ]]; then
-  base64 -d "${ROOT_DIR}/assets/${APP_ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}" ]]; then
-  cp "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}" "${DIST_DIR}/${ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}.base64" ]]; then
-  base64 -d "${ROOT_DIR}/assets/${LEGACY_SOURCE_ICON_NAME}.base64" > "${DIST_DIR}/${ICON_NAME}"
-fi
-
-if [[ -f "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}" ]]; then
-  cp "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}" "${DIST_DIR}/${FOCUSED_ICON_NAME}"
-elif [[ -f "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}.base64" ]]; then
-  base64 -d "${ROOT_DIR}/assets/${FOCUSED_ICON_NAME}.base64" > "${DIST_DIR}/${FOCUSED_ICON_NAME}"
-elif [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
-  cp "${DIST_DIR}/${ICON_NAME}" "${DIST_DIR}/${FOCUSED_ICON_NAME}"
-fi
-
-if [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
-  cp "${DIST_DIR}/${ICON_NAME}" "${DIST_DIR}/${APP_ICON_NAME}"
-fi
+python3 "${ROOT_DIR}/scripts/generate_launcher_icons.py" "${DIST_DIR}"
 
 echo "Built: ${DIST_DIR}/${APP_NAME}"
 if [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
@@ -59,4 +34,7 @@ if [[ -f "${DIST_DIR}/${ICON_NAME}" ]]; then
 fi
 if [[ -f "${DIST_DIR}/${FOCUSED_ICON_NAME}" ]]; then
   echo "Focus: ${DIST_DIR}/${FOCUSED_ICON_NAME}"
+fi
+if [[ -f "${DIST_DIR}/${APP_ICON_NAME}" ]]; then
+  echo "Compat icon: ${DIST_DIR}/${APP_ICON_NAME}"
 fi
