@@ -246,9 +246,46 @@ static bool daemon_enabled_from_config() {
     return enabled;
 }
 
+static bool file_exists_for_backup(const char *path) {
+    FILE *f = fopen(path, "rb");
+    if (!f) return false;
+    fclose(f);
+    return true;
+}
+
+static void backup_database_once(const char *db_path) {
+    if (!file_exists_for_backup(db_path)) return;
+
+    std::string backup_path = std::string(db_path) + ".bak";
+    if (file_exists_for_backup(backup_path.c_str())) return;
+
+    FILE *src = fopen(db_path, "rb");
+    if (!src) return;
+    FILE *dst = fopen(backup_path.c_str(), "wb");
+    if (!dst) {
+        fclose(src);
+        return;
+    }
+
+    char buf[4096];
+    bool ok = true;
+    size_t n = 0;
+    while ((n = fread(buf, 1, sizeof(buf), src)) > 0) {
+        if (fwrite(buf, 1, n, dst) != n) {
+            ok = false;
+            break;
+        }
+    }
+
+    fclose(src);
+    fclose(dst);
+    if (!ok) unlink(backup_path.c_str());
+}
+
 static bool ensure_db_open() {
     if (g_db_ready) return true;
     iv_buildpath(DB_PATH);
+    backup_database_once(DB_PATH);
     g_db_ready = db_open(DB_PATH);
     return g_db_ready;
 }
@@ -673,6 +710,8 @@ static void run_daemon() {
     FILE *f = fopen(PID_PATH, "w");
     if (f) { fprintf(f, "%d\n", getpid()); fclose(f); }
 
+    iv_buildpath(DB_PATH);
+    backup_database_once(DB_PATH);
     if (!db_open(DB_PATH)) {
         db_log("run_daemon: failed to open DB.");
         unlink(PID_PATH);
