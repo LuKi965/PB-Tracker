@@ -54,6 +54,7 @@ static double g_scale = 1.0;
 static int g_page_index = 0;
 static bool g_daemon_enabled = true;
 static bool g_db_ready = false;
+static bool g_activity_history = false;
 
 static int S(int px) { return (int)(px * g_scale); }
 
@@ -343,6 +344,7 @@ static void draw_progress_bar(int x, int y, int w, int h, float progress) {
 
 static const char *page_name() {
     if (g_page_index == PAGE_DASHBOARD) return tr("Overview");
+    if (g_page_index == PAGE_ACTIVITY && g_activity_history) return tr("History");
     if (g_page_index == PAGE_ACTIVITY) return tr("Activity");
     return tr("Library");
 }
@@ -487,7 +489,7 @@ static void draw_activity_page() {
     draw_metric_cell(2, 3, y, format_duration_i18n(max_seconds), tr("Best day"));
     y += S(108);
 
-    int limit = std::min((int)days.size(), 9);
+    int limit = std::min((int)days.size(), 8);
     for (int i = 0; i < limit; i++) {
         DayStat d = days[i];
         std::string label = truncate_to_width(day_label_i18n(d), S(110));
@@ -498,6 +500,58 @@ static void draw_activity_page() {
         draw_right(format_duration_i18n(d.total_seconds).c_str(), value_right, y, g_font_small, BLACK);
         y += row_h;
     }
+    draw_centered(tr("Tap center: History"), ScreenHeight() - S(50), g_font_small, DGRAY);
+}
+
+static void draw_period_row(const std::string &label, long seconds, int sessions, int y) {
+    int margin = S(36);
+    std::string left = truncate_to_width(label, ScreenWidth() - S(220));
+    std::string right = format_duration_i18n(seconds) + " · " + sessions_short_i18n(sessions);
+    draw_text(margin, y, g_font_body, BLACK, left.c_str());
+    draw_right(right.c_str(), ScreenWidth() - margin, y + S(2), g_font_small, DGRAY);
+}
+
+static void draw_activity_history_page() {
+    draw_header();
+    if (!ensure_db_open()) return;
+
+    OverallStats overall = db_get_overall_stats();
+    std::vector<PeriodStat> months = db_get_monthly_stats(6);
+    std::vector<PeriodStat> years = db_get_yearly_stats(4);
+
+    int y = S(64);
+    draw_section_label(tr("All time"), y);
+    y += S(42);
+    draw_metric_cell(0, 3, y, format_duration_i18n(overall.total_seconds), tr("Total read"));
+    draw_metric_cell(1, 3, y, int_text(overall.total_sessions), tr("Sessions"));
+    draw_metric_cell(2, 3, y, int_text(overall.distinct_books), tr("In library"));
+    y += S(94);
+
+    draw_section_label(tr("Months"), y);
+    y += S(36);
+    if (months.empty()) {
+        draw_text(S(36), y, g_font_small, DGRAY, tr("No reading data yet."));
+        y += S(34);
+    } else {
+        int shown = std::min((int)months.size(), 5);
+        for (int i = 0; i < shown; i++) {
+            std::string label = month_year_i18n(months[i].year, months[i].month);
+            draw_period_row(label, months[i].total_seconds, months[i].session_count, y);
+            y += S(42);
+        }
+    }
+
+    if (y + S(116) < ScreenHeight()) {
+        draw_section_label(tr("Years"), y);
+        y += S(36);
+        int shown = std::min((int)years.size(), 3);
+        for (int i = 0; i < shown; i++) {
+            draw_period_row(years[i].label, years[i].total_seconds, years[i].session_count, y);
+            y += S(42);
+        }
+    }
+
+    draw_centered(tr("Tap center: Activity"), ScreenHeight() - S(50), g_font_small, DGRAY);
 }
 
 static void draw_book_row(const BookTotal &book, int x, int y, int cover_w, int cover_h, int max_y) {
@@ -598,6 +652,7 @@ static void draw_page() {
     if (g_page_index >= PAGE_COUNT) g_page_index = PAGE_COUNT - 1;
 
     if (g_page_index == PAGE_DASHBOARD) draw_dashboard_page();
+    else if (g_page_index == PAGE_ACTIVITY && g_activity_history) draw_activity_history_page();
     else if (g_page_index == PAGE_ACTIVITY) draw_activity_page();
     else draw_library_page();
 
@@ -728,6 +783,7 @@ static void run_daemon() {
 
 static void go_prev_page() {
     if (g_page_index > 0) {
+        g_activity_history = false;
         g_page_index--;
         draw_page();
     }
@@ -735,6 +791,7 @@ static void go_prev_page() {
 
 static void go_next_page() {
     if (g_page_index < PAGE_COUNT - 1) {
+        g_activity_history = false;
         g_page_index++;
         draw_page();
     }
@@ -769,13 +826,27 @@ static int handle_touch(int type, int x, int y) {
 
     if (row == 1 && col == 0) { go_prev_page(); return 1; }
     if (row == 1 && col == 2) { go_next_page(); return 1; }
-    if (row == 1 && col == 1) { refresh_from_daemon(); draw_page(); return 1; }
+    if (row == 1 && col == 1) {
+        if (g_page_index == PAGE_ACTIVITY) {
+            g_activity_history = !g_activity_history;
+            draw_page();
+            return 1;
+        }
+        refresh_from_daemon();
+        draw_page();
+        return 1;
+    }
     return 0;
 }
 
 static int handle_key(int type, int key) {
     (void)type;
     if (key == KEY_BACK) {
+        if (g_activity_history) {
+            g_activity_history = false;
+            draw_page();
+            return 1;
+        }
         CloseApp();
         return 1;
     }
